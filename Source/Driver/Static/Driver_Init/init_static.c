@@ -7,6 +7,9 @@
 #include "init_static.h"
 #include "init_user.h"
 
+#define VECTKEY_WRITE 0x05FAUL
+#define VECTKEY_READ 0xFA05UL
+
 RCC_t * RCC_reg = (RCC_t *)0x40023800;
 unsigned int SysClock_Freq = HSI_VALUE;
 unsigned int AHB_freq = HSI_VALUE;
@@ -47,9 +50,9 @@ static bool prioritySetup(priConf_t priConf_st)
 		return NOT_OK;
 	}
 
-	WRITE_REG(SCB_reg->AIRCR, 0xFFFFUL, 16U, 0x05FAUL); // Write 0x5FA to VECTKEY for writting
+	WRITE_REG(SCB_reg->AIRCR, 0xFFFFUL, 16U, VECTKEY_WRITE); // Write 0x5FA to VECTKEY for writting
 	WRITE_REG(SCB_reg->AIRCR, 0x7UL, 8U, (uint32_t)priConf_st.priGroupField); // Set PRIGROUP
-	WRITE_REG(SCB_reg->AIRCR, 0xFFFFUL, 16U, 0xFA05UL); // Write 0xFA05 to VECTKEY for read only
+	WRITE_REG(SCB_reg->AIRCR, 0xFFFFUL, 16U, VECTKEY_READ); // Write 0xFA05 to VECTKEY for read only
 
 	returnVal |= initTick(priConf_st);
 
@@ -87,18 +90,72 @@ static uint32_t getPriorityVal(priGroup_t priGroupField, uint8_t groupPriority, 
 		case PRIGROUP_1:
 		case PRIGROUP_2:
 		case PRIGROUP_3:
+
+			if ((groupPriority > 15U) || (subPriority > 0U))
+			{
+				return NOT_OK;
+			}
+			else
+			{
+				// do nothing
+			}
+
 			priorityVal = (groupPriority << 4U);
 			break;
+
 		case PRIGROUP_4:
+
+			if ((groupPriority > 7U) || (subPriority > 1U))
+			{
+				return NOT_OK;
+			}
+			else
+			{
+				// do nothing
+			}
+
 			priorityVal = (((groupPriority << 1U) | subPriority) << 4U);
 			break;
+
 		case PRIGROUP_5:
+
+			if ((groupPriority > 3U) || (subPriority > 3U))
+			{
+				return NOT_OK;
+			}
+			else
+			{
+				// do nothing
+			}
+
 			priorityVal = (((groupPriority << 2U) | subPriority) << 4U);
 			break;
+
 		case PRIGROUP_6:
+
+			if ((groupPriority > 1U) || (subPriority > 7U))
+			{
+				return NOT_OK;
+			}
+			else
+			{
+				// do nothing
+			}
+
 			priorityVal = (((groupPriority << 3U) | subPriority) << 4U);
 			break;
+
 		case PRIGROUP_7:
+
+			if ((groupPriority > 0U) || (subPriority > 15U))
+			{
+				return NOT_OK;
+			}
+			else
+			{
+				// do nothing
+			}
+
 			priorityVal = (subPriority << 4U);
 			break;
 	}
@@ -125,9 +182,9 @@ static bool oscSetup(oscillatorConf_t oscillatorConf_st)
 
 			if (DISABLE == oscillatorConf_st.PLL.PLL_enable)
 			{
-				WRITE_REG(RCC_reg->CFGR, 3UL, 0U, 1UL);
+				WRITE_REG(RCC_reg->CFGR, 3UL, 0U, 1UL); // choose HSE as system clock
 				
-				while (1UL != READ_REG(RCC_reg->CFGR, 3UL, 2U))
+				while (1UL != READ_REG(RCC_reg->CFGR, 3UL, 2U))	// wait until HSE is choose as system clock
 				{
 					//do nothing
 				}
@@ -162,9 +219,9 @@ static bool oscSetup(oscillatorConf_t oscillatorConf_st)
 			
 			if (DISABLE == oscillatorConf_st.PLL.PLL_enable)
 			{
-				WRITE_REG(RCC_reg->CFGR, 0x3UL, 0U, 0UL);
+				WRITE_REG(RCC_reg->CFGR, 0x3UL, 0U, 0UL); // choose HSI as system clock
 
-				while (0UL != READ_REG(RCC_reg->CFGR, 3UL, 2U))
+				while (0UL != READ_REG(RCC_reg->CFGR, 3UL, 2U))	// wait until HSI is choose as system clock
 				{
 					// do nothing
 				}
@@ -190,9 +247,14 @@ static bool oscSetup(oscillatorConf_t oscillatorConf_st)
 			break;
 
 		case LSE:
+
 			if (!(READ_REG(PWR_reg->CR, 1UL, 8U)))
 			{
 				SET_BIT(PWR_reg->CR, 8U); // Enable access to RTC and RTC Backup registers and backup SRAM
+			}
+			else
+			{
+				// do nothing
 			}
 			
 			while (!(READ_REG(PWR_reg->CR, 1UL, 8U)))
@@ -230,27 +292,46 @@ static bool oscSetup(oscillatorConf_t oscillatorConf_st)
 		{
 			return NOT_OK;
 		}
+		else
+		{
+			// do nothing
+		}
+
 		if ((uint16_t)0x1FF < oscillatorConf_st.PLL.PLLN)
 		{
 			return NOT_OK;
 		}
+		else
+		{
+			// do nothing
+		}
+		
 		if ((uint8_t)0x3 < oscillatorConf_st.PLL.PLLP)
 		{
 			return NOT_OK;
 		}
+		else
+		{
+			// do nothing
+		}
+		
 		if ((uint8_t)0xF < oscillatorConf_st.PLL.PLLQ)
 		{
 			return NOT_OK;
 		}
+		else
+		{
+			// do nothing
+		}
 
 		if (HSI == oscillatorConf_st.Oscillator)
 		{
-			CLEAR_BIT(RCC_reg->PLLCFGR, 22U);
+			CLEAR_BIT(RCC_reg->PLLCFGR, 22U); // choose HSI as clock source for PLL
 			tmp_SysClock_Freq = ((unsigned int)HSI_VALUE / oscillatorConf_st.PLL.PLLM) * oscillatorConf_st.PLL.PLLN / oscillatorConf_st.PLL.PLLP;
 		}
 		else if (HSE == oscillatorConf_st.Oscillator)
 		{
-			SET_BIT(RCC_reg->PLLCFGR, 22U);
+			SET_BIT(RCC_reg->PLLCFGR, 22U); // choose HSE as clock source for PLL
 			tmp_SysClock_Freq = ((unsigned int)HSE_VALUE / oscillatorConf_st.PLL.PLLM) * oscillatorConf_st.PLL.PLLN / oscillatorConf_st.PLL.PLLP;
 		}
 		else
@@ -266,7 +347,7 @@ static bool oscSetup(oscillatorConf_t oscillatorConf_st)
 			// do nothing
 		}
 
-		WRITE_REG(RCC_reg->CFGR, 0x3UL, 0U, 2UL);
+		WRITE_REG(RCC_reg->CFGR, 0x3UL, 0U, 2UL); // choose PLL as system clock
 
 		while (2UL != READ_REG(RCC_reg->CFGR, 3UL, 2U)) // Wait for PLL to be system clock
 		{
