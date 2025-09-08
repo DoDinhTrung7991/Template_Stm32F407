@@ -241,7 +241,7 @@ void Reset_Handler(void)
     }
 }
 
-void EXTI3_handler(void)
+void EXTI3_Handler(void)
 {
 	if ((EXTI_reg->PR >> 3U) & 1UL)
 	{
@@ -249,7 +249,7 @@ void EXTI3_handler(void)
 	}
 }
 
-void EXTI4_handler(void)
+void EXTI4_Handler(void)
 {
 	if ((EXTI_reg->PR >> 4U) & 1UL)
 	{
@@ -257,14 +257,13 @@ void EXTI4_handler(void)
 	}
 }
 
-void USART1_handler(void)
+void USART1_Handler(void)
 {
 	if ((USART1_reg->SR >> 5U) & 1UL)
 	{
 		UART_receive(USART1, UART_recv_buf);
+    	isUpdated_UART = true;
 	}
-
-	isUpdated_UART = true;
 }
 
 void SysTick_Handler(void)
