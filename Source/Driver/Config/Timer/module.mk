@@ -7,4 +7,4 @@ TIMER_INC = \
 	-I$(GPIO_PATH) \
 	-I$(STATIC_INIT_PATH) \
 	-I$(STATIC_INIT_PATH)../Registers \
-	-I$(STATIC_INIT_PATH)../Other_headers
+	-I$(STATIC_INIT_PATH)../General_headers

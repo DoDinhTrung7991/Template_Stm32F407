@@ -3,6 +3,6 @@ GPIO_PATH = $(SRC_PATH)Driver/Config/$(GPIO_DIR)
 GPIO_OBJ_PATH = $(BUILD_RESULT_PATH_DRIVER)$(GPIO_DIR)
 GPIO_INC = \
 	-I$(GPIO_PATH) \
-	-I$(STATIC_INIT_PATH)../Other_headers \
+	-I$(STATIC_INIT_PATH)../General_headers \
 	-I$(STATIC_INIT_PATH) \
 	-I$(STATIC_INIT_PATH)../Registers \
