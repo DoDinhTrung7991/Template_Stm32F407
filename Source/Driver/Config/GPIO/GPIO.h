@@ -3,6 +3,7 @@
 
 #include "init_static.h"
 #include "GPIO_header.h"
+#include "RCC_header.h"
 
 typedef enum
 {

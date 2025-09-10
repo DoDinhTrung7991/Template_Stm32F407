@@ -65,7 +65,7 @@ static bool initTick(priConf_t priConf_st)
 	
 	if (Systick_LOAD > 0xFFFFFFUL)
 	{
-		returnVal |= NOT_OK;
+		return NOT_OK;
 	}
 	else
 	{

@@ -23,7 +23,7 @@ OBJ_LIST = \
 	$(TIMER_OBJ_PATH)PWM.o \
 	$(Communication_OBJ_PATH)$(UART_DIR)UART.o \
 	$(CONTROL_OBJ_PATH)main.o \
-	$(STARTUP_CODE_OBJ_PATH)startup__stm32f407vet6.o \
+	$(STARTUP_CODE_OBJ_PATH)startup__stm32f407vet6.o
 #----------	MACRO_END	----------#
 
 #----------	MODULE_START	----------#
@@ -81,4 +81,4 @@ $(STARTUP_CODE_OBJ_PATH)startup__stm32f407vet6.o: $(STARTUP_CODE_PATH)startup__s
 #----------	MODULE_END		----------#
 
 clean: $(BUILD_RESULT_PATH)
-	rm -r $(BUILD_RESULT_PATH)*
+	rm -rf $(BUILD_RESULT_PATH)*
