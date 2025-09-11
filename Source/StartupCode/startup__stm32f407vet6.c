@@ -226,7 +226,7 @@ void Reset_Handler(void)
     clear_bss(&_sbss, &_ebss);
     clear_bss(&_ccmram_sbss, &_ccmram_ebss);
 
-    if (OK == SystemInit(void)) // Check if System init being successful
+    if (OK == SystemInit()) // Check if System init being successful
     {
         (void)main();
     }
