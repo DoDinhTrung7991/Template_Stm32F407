@@ -12,12 +12,12 @@ MEMORY
 
 SECTIONS
 {
-    .isr_vector:
+    .isr_vector :
     {
         KEEP(*(.isr_vector))
     } > FLASH
 
-    .text:
+    .text :
     {
         *(.text*)
         . = ALIGN(4);
@@ -25,7 +25,7 @@ SECTIONS
         . = ALIGN(4);
     } > FLASH
 
-    .data: AT(ADDR(.text) + SIZEOF(.text))
+    .data : AT(ADDR(.text) + SIZEOF(.text))
     {
         _sdata = .;
         *(.data*)
@@ -43,7 +43,7 @@ SECTIONS
         _ebss = .;
     } > SRAM
 
-    .ccmram_data: AT(LOADADDR(.data) + SIZEOF(.data))
+    .ccmram_data : AT(LOADADDR(.data) + SIZEOF(.data))
     {
         _ccmram_sdata = .;
         *(.ccmram_data*)
@@ -69,7 +69,7 @@ SECTIONS
         _heap_end = .;
     } > SRAM
 
-    .stack:
+    .stack :
     {
         _estack = ORIGIN(SRAM) + LENGTH(SRAM);
         _stack_start = _estack - _Min_stack_size;

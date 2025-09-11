@@ -213,8 +213,8 @@ __attribute__((section(".isr_vector"), used)) isr_fnct_t isr_vector_arr[] = // v
     FPU_Handler,
 };
 
-inline void LMAtoVMA(uint32_t *pDst, uint32_t *pSrc, uint32_t *pDst_end);
-inline void clear_bss(uint32_t *pStart, uint32_t *pEnd);
+static inline void LMAtoVMA(uint32_t *pDst, uint32_t *pSrc, uint32_t *pDst_end);
+static inline void clear_bss(uint32_t *pStart, uint32_t *pEnd);
 
 void Reset_Handler(void)
 {
@@ -279,7 +279,7 @@ void Default_Handler(void)
     }
 }
 
-inline void LMAtoVMA(uint32_t *pDst, uint32_t *pSrc, uint32_t *pDst_end)
+static inline void LMAtoVMA(uint32_t *pDst, uint32_t *pSrc, uint32_t *pDst_end)
 {
     while (pDst < pDst_end)
     {
@@ -287,7 +287,7 @@ inline void LMAtoVMA(uint32_t *pDst, uint32_t *pSrc, uint32_t *pDst_end)
     }
 }
 
-inline void clear_bss(uint32_t *pStart, uint32_t *pEnd)
+static inline void clear_bss(uint32_t *pStart, uint32_t *pEnd)
 {
     while (pStart < pEnd)
     {
