@@ -116,7 +116,7 @@ __attribute__((weak, alias("Default_Handler")))void CRYP_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void HASH_RNG_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void FPU_Handler(void);
 
-__attribute__((section(".isr_vector"), used)) isr_fnct_t isr_vector[] = //vector table placed at .isr_vector section
+__attribute__((section(".isr_vector"), used)) isr_fnct_t isr_vector_arr[] = // vector table placed at .isr_vector section
 {
     (isr_fnct_t)&_estack,
     Reset_Handler,
