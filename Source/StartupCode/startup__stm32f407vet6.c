@@ -259,10 +259,10 @@ void EXTI4_Handler(void)
 
 void USART1_Handler(void)
 {
+	// Check if the RXNE (Receive Not Empty) flag is set in the Status Register
 	if ((USART1_reg->SR >> 5U) & 1UL)
 	{
 		UART_receive(USART1, UART_recv_buf);
-    	isUpdated_UART = true;
 	}
 }
 

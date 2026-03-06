@@ -5,7 +5,6 @@
 #include "RCC_header.h"
 #include "PWR_header.h"
 #include "init_static.h"
-#include "init_user.h"
 
 #define VECTKEY_WRITE 0x05FAUL
 #define VECTKEY_READ 0xFA05UL
@@ -365,7 +364,7 @@ static bool oscSetup(oscillatorConf_t oscillatorConf_st)
 }
 
 static bool clockSetup(clockConf_t clockConf_st)
-{	
+{
 	switch (clockConf_st.AHB_prescaler)
 	{
 		case AHB_not_divided:

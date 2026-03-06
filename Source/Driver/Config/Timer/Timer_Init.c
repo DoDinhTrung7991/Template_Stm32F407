@@ -1,6 +1,5 @@
 #include "Timer.h"
 #include "init_static.h"
-#include "init_user.h"
 #include "RCC_header.h"
 
 TIM2_t *TIM2_reg = (TIM2_t*)0x40000000;

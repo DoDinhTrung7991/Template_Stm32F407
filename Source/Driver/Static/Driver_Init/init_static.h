@@ -90,4 +90,8 @@ typedef struct
 	PPREx_t PPRE2;
 } clockConf_t;
 
+extern unsigned int AHB_freq;
+extern unsigned int APB1_freq;
+extern unsigned int APB2_freq;
+
 bool initConfig(priConf_t priConf_st, oscillatorConf_t oscillatorConf_st, clockConf_t clockConf_st);

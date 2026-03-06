@@ -5,5 +5,6 @@ STARTUP_CODE_INC = 	\
 	-I$(STATIC_INIT_PATH)../General_headers \
 	-I$(CONTROL_PATH) \
 	-I$(CONFIG_INIT_PATH) \
+	-I$(STATIC_INIT_PATH) \
 	-I$(STATIC_INIT_PATH)../Registers \
 	-I$(UART_PATH)

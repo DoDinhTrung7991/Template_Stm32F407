@@ -13,6 +13,13 @@ void NVIC_ISER_setVal(peripheral_Selection_t peripheral_Selection_en)
     WRITE_REG(NVIC_reg->ISER[bytePos], 1UL, bitPos, 1UL);
 }
 
+void NVIC_ICER_setVal(peripheral_Selection_t peripheral_Selection_en)
+{
+    uint8_t bytePos = peripheral_Selection_en / 32U;
+    uint8_t bitPos = peripheral_Selection_en - (bytePos * 32U);
+    WRITE_REG(NVIC_reg->ICER[bytePos], 1UL, bitPos, 1UL);
+}
+
 bool Ex_Interrupt(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, GPIO_pullDir_t GPIO_pullDir_en, EvRaising_Dir_t EvRaising_Dir_en)
 {
     bool returnVal = OK;

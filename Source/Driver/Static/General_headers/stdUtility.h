@@ -12,5 +12,8 @@
 #define OK 0U
 #define NOT_OK 1U
 
+#define INITTED 1
+#define NOT_INITTED 0
+
 #endif
 

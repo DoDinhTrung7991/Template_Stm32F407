@@ -1,7 +1,7 @@
 #ifndef _GPIO_H_
 #define _GPIO_H_
 
-#include "init_static.h"
+#include "stdUtility.h"
 #include "GPIO_header.h"
 #include "RCC_header.h"
 
