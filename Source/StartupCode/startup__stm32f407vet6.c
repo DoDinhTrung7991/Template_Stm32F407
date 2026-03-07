@@ -1,4 +1,5 @@
 #include "stdUtility.h"
+#include "bit_operator.h"
 #include "main.h"
 #include "init.h"
 #include "EXTI_header.h"
@@ -260,7 +261,7 @@ void EXTI4_Handler(void)
 void USART1_Handler(void)
 {
 	// Check if the RXNE (Receive Not Empty) flag is set in the Status Register
-	if ((USART1_reg->SR >> 5U) & 1UL)
+	if (READ_REG(USART1_reg->SR, 1UL, 5U))
 	{
 		UART_receive(USART1, UART_recv_buf);
 	}

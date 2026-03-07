@@ -40,6 +40,10 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 				WRITE_REG(USART1_reg->BRR, 0xFFFFUL, 0U, brr_val);
 				// Enable/Disable Parity control
 				WRITE_REG(USART1_reg->CR1, 1UL, 10U, 0UL);
+				// CTS enable
+				WRITE_REG(USART1_reg->CR3, 1UL, 9U, 0UL);
+				// RTS enable
+				WRITE_REG(USART1_reg->CR3, 1UL, 8U, 0UL);
 				// Enable/Disable Transmitter, trigger send Idle frame as first tranmission. 
 				WRITE_REG(USART1_reg->CR1, 1UL, 3U, 1UL);
 				// Enable/Disable Receiver
@@ -125,6 +129,7 @@ bool UART_transmit(UARTx_t UARTx, const uint8_t* buf, uint8_t data_length)
 						USART1_reg->DR = (uint8_t)(*pdata_8bit & 0xFFU);
 						pdata_8bit ++;
 					}
+					
 					while (!READ_REG(USART1_reg->SR, 1UL, 7U));
 					data_length --;
 				}
@@ -155,21 +160,19 @@ bool UART_receive(UARTx_t UARTx, volatile uint8_t* buf)
 			}
 			else
 			{
-				if (READ_REG(USART1_reg->SR, 1UL, 5U))
+				if (READ_REG(USART1_reg->CR1, 1UL, 12U) && (!READ_REG(USART1_reg->CR1, 1UL, 10U)))
 				{
-					if (READ_REG(USART1_reg->CR1, 1UL, 12U) && (!READ_REG(USART1_reg->CR1, 1UL, 10U)))
-					{
-						// Correctly read 9-bit data in a single operation
-						uint16_t temp_data = (USART1_reg->DR & 0x1FFU);
-						buf[0] = (uint8_t)(temp_data & 0xFFUL);
-						buf[1] = (uint8_t)((temp_data >> 8U) & 0x01UL);
-					}
-					else
-					{
-						buf[0] = (USART1_reg->DR & 0xFFUL);
-					}
-					isUpdated_UART = true;
+					// Correctly read 9-bit data in a single operation
+					uint16_t temp_data = (USART1_reg->DR & 0x1FFU);
+					buf[0] = (uint8_t)(temp_data & 0xFFUL);
+					buf[1] = (uint8_t)((temp_data >> 8U) & 0x01UL);
 				}
+				else
+				{
+					buf[0] = (USART1_reg->DR & 0xFFUL);
+				}
+
+				isUpdated_UART = true;
 			}
 
 			break;
