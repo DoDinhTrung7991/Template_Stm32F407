@@ -1,9 +1,11 @@
 #include "GPIO.h"
 #include "UART.h"
+#include <stdint.h>
 
 int main(void)
 {
-	int my_data = 0;
+	int rx_data = 48;
+	uint8_t tx_data[4] = {48, 49, 50, 51};
 
 	UART_init(USART1, 9600); // Initialize UART with a 9600 baud rate
 	GPIO_OUT_setup(GPIOAEN, 6, GP, AF7, PP, PU);
@@ -14,16 +16,18 @@ int main(void)
 
 	while (1)
 	{
-		if (true == isUpdated_UART)
-		{
-			my_data = UART_Read();
+		UART_transmit(USART1, tx_data, 4);
 
-			if (48 == my_data)
+		/* if (true == isUpdated_UART)
+		{
+			rx_data = UART_Read();
+
+			if (48 == rx_data)
 			{
 				GPIO_OUT_setVal(GPIOAEN, 6, 0);
 				GPIO_OUT_setVal(GPIOAEN, 7, 1);
 			}
-			else if (49 == my_data)
+			else if (49 == rx_data)
 			{
 				GPIO_OUT_setVal(GPIOAEN, 6, 1);
 				GPIO_OUT_setVal(GPIOAEN, 7, 0);
@@ -34,8 +38,9 @@ int main(void)
 				GPIO_OUT_setVal(GPIOAEN, 7, 0);
 			}
 
-			UART_transmit(USART1, &(const uint8_t*)my_data, 1);
-		}
+			uint8_t data_to_transmit = (uint8_t)rx_data;
+			UART_transmit(USART1, &data_to_transmit, 1);
+		} */
 	}
 
     return 0;
