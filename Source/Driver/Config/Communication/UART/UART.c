@@ -17,7 +17,7 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 			if (UART_STATE_READY == UART_state)
 			{
 				UART_init_state = NOT_INITTED;
-				// Enable clock for module
+				// Enable clock for USART1 peripheral
 				WRITE_REG(RCC_reg->APB2ENR, 1UL, 4U, 1UL);
 				// Disable USART
 				WRITE_REG(USART1_reg->CR1, 1UL, 13U, 0UL);
@@ -44,17 +44,14 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 				WRITE_REG(USART1_reg->CR3, 1UL, 9U, 0UL);
 				// RTS enable
 				WRITE_REG(USART1_reg->CR3, 1UL, 8U, 0UL);
-				// Enable/Disable Transmitter, trigger send Idle frame as first tranmission. 
-				WRITE_REG(USART1_reg->CR1, 1UL, 3U, 1UL);
-				// Enable/Disable Receiver
-				WRITE_REG(USART1_reg->CR1, 1UL, 2U, 1UL);
 				// Setting clock from CK pin for Synchronize mode
 				WRITE_REG(USART1_reg->CR2, 1UL, 11U, 0UL);
 				// Half-duplex selection
 				WRITE_REG(USART1_reg->CR3, 1UL, 3U, 0UL);
-				// Setup GPIO for USART ports
-				GPIO_OUT_setup(GPIOAEN, 9, AF, AF7, PP, NoP);
-				GPIO_OUT_setup(GPIOAEN, 10, AF, AF7, PP, NoP);
+				// TXE interrupt enable
+				WRITE_REG(USART1_reg->CR1, 1UL, 7U, 0UL);
+				// Enable/Disable Receiver
+				WRITE_REG(USART1_reg->CR1, 1UL, 2U, 1UL);
 				// RXNE interrupt enable
 				WRITE_REG(USART1_reg->CR1, 1UL, 5U, 1UL);
 
@@ -65,10 +62,16 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 
 				// Parity error interrupt enable
 				WRITE_REG(USART1_reg->CR1, 1UL, 8U, 0UL); // Disabled as it's not handled
-				// TXE interrupt enable
-				WRITE_REG(USART1_reg->CR1, 1UL, 7U, 0UL);
 				// Enable/Disable Error interrupt
 				WRITE_REG(USART1_reg->CR3, 1UL, 0U, 0UL);
+				// Setup GPIO for USART ports
+				GPIO_OUT_setup(GPIOAEN, 9, AF, AF7, PP, NoP);	// TX
+				GPIO_OUT_setup(GPIOAEN, 10, AF, AF7, PP, NoP);	// RX
+				// Clear receive buffer
+				UART_recv_buf[0] = 0;
+				UART_recv_buf[1] = 0;
+				// Clear isUpdated flag
+				isUpdated_UART = false;
 				// Enable USART
 				WRITE_REG(USART1_reg->CR1, 1UL, 13U, 1UL);
 				UART_init_state = INITTED;
@@ -116,9 +119,15 @@ bool UART_transmit(UARTx_t UARTx, const uint8_t* buf, uint8_t data_length)
 					pdata_8bit = (uint8_t *)buf;
 					pdata_16bit = NULL;
 				}
+
+				// Enable/Disable Transmitter, trigger send Idle frame as first tranmission. 
+				WRITE_REG(USART1_reg->CR1, 1UL, 3U, 1UL);
 	
 				while (data_length > 0)
 				{
+					// Waits until TXE=1
+					while (!READ_REG(USART1_reg->SR, 1UL, 7U));
+
 					if (NULL == pdata_8bit)
 					{
 						USART1_reg->DR = (uint16_t)(*pdata_16bit & 0x1FFU);
@@ -130,7 +139,6 @@ bool UART_transmit(UARTx_t UARTx, const uint8_t* buf, uint8_t data_length)
 						pdata_8bit ++;
 					}
 					
-					while (!READ_REG(USART1_reg->SR, 1UL, 7U));
 					data_length --;
 				}
 	
@@ -186,10 +194,11 @@ bool UART_receive(UARTx_t UARTx, volatile uint8_t* buf)
 	return OK;
 }
 
-uint8_t UART_Read(void)
+int UART_Read(void)
 {
 	NVIC_ICER_setVal(USART1_Interrupt);
-	uint8_t data = UART_recv_buf[0];
+	int data = 0;
+	data = (int)(UART_recv_buf[0] | (UART_recv_buf[1] << 8));
 	isUpdated_UART = false;
 	NVIC_ISER_setVal(USART1_Interrupt);
 

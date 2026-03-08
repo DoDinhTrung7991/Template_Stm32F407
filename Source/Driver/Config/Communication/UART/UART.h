@@ -23,6 +23,6 @@ typedef enum
 bool UART_init(UARTx_t UARTx, uint32_t baudrate);
 bool UART_transmit(UARTx_t UARTx, const uint8_t* buf, uint8_t data_length);
 bool UART_receive(UARTx_t UARTx, volatile uint8_t* buf);
-uint8_t UART_Read(void);
+int UART_Read(void);
 
 #endif

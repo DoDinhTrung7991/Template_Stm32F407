@@ -3,7 +3,7 @@
 
 int main(void)
 {
-	uint8_t data_u8 = 48;
+	int my_data = 0;
 
 	UART_init(USART1, 9600); // Initialize UART with a 9600 baud rate
 	GPIO_OUT_setup(GPIOAEN, 6, GP, AF7, PP, PU);
@@ -16,25 +16,25 @@ int main(void)
 	{
 		if (true == isUpdated_UART)
 		{
-			data_u8 = UART_Read();
+			my_data = UART_Read();
 
-			if (48 == data_u8)
+			if (48 == my_data)
 			{
 				GPIO_OUT_setVal(GPIOAEN, 6, 0);
 				GPIO_OUT_setVal(GPIOAEN, 7, 1);
 			}
-			else if (49 == data_u8)
+			else if (49 == my_data)
 			{
 				GPIO_OUT_setVal(GPIOAEN, 6, 1);
 				GPIO_OUT_setVal(GPIOAEN, 7, 0);
 			}
 			else
 			{
-				GPIO_OUT_setVal(GPIOAEN, 6, 1);
-				GPIO_OUT_setVal(GPIOAEN, 7, 1);
+				GPIO_OUT_setVal(GPIOAEN, 6, 0);
+				GPIO_OUT_setVal(GPIOAEN, 7, 0);
 			}
 
-			UART_transmit(USART1, &data_u8, 1);
+			UART_transmit(USART1, &(const uint8_t*)my_data, 1);
 		}
 	}
 
