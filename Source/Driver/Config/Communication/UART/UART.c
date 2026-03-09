@@ -48,6 +48,18 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 				WRITE_REG(USART1_reg->CR2, 1UL, 11U, 0UL);
 				// Half-duplex selection
 				WRITE_REG(USART1_reg->CR3, 1UL, 3U, 0UL);
+				// LIN mode enable
+				WRITE_REG(USART1_reg->CR2, 1UL, 14U, 0UL);
+				// Smartcard mode enable
+				WRITE_REG(USART1_reg->CR3, 1UL, 5U, 0UL);
+				// IrDA mode enable
+				WRITE_REG(USART1_reg->CR3, 1UL, 1U, 0UL);
+				// Parity error interrupt enable
+				WRITE_REG(USART1_reg->CR1, 1UL, 8U, 0UL); // Disabled as it's not handled
+				// Enable/Disable Error interrupt
+				WRITE_REG(USART1_reg->CR3, 1UL, 0U, 0UL);
+				// Enable Transmitter
+				WRITE_REG(USART1_reg->CR1, 1UL, 3U, 1UL);
 				// TXE interrupt enable
 				WRITE_REG(USART1_reg->CR1, 1UL, 7U, 0UL);
 				// Enable/Disable Receiver
@@ -60,10 +72,6 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 					NVIC_ISER_setVal(USART1_Interrupt);
 				}
 
-				// Parity error interrupt enable
-				WRITE_REG(USART1_reg->CR1, 1UL, 8U, 0UL); // Disabled as it's not handled
-				// Enable/Disable Error interrupt
-				WRITE_REG(USART1_reg->CR3, 1UL, 0U, 0UL);
 				// Setup GPIO for USART ports
 				GPIO_OUT_setup(GPIOAEN, 9, AF, AF7, PP, NoP);	// TX
 				GPIO_OUT_setup(GPIOAEN, 10, AF, AF7, PP, NoP);	// RX
@@ -119,9 +127,6 @@ bool UART_transmit(UARTx_t UARTx, const uint8_t* buf, uint8_t data_length)
 					pdata_8bit = (uint8_t *)buf;
 					pdata_16bit = NULL;
 				}
-
-				// Enable/Disable Transmitter, trigger send Idle frame as first tranmission. 
-				WRITE_REG(USART1_reg->CR1, 1UL, 3U, 1UL);
 	
 				while (data_length > 0)
 				{
@@ -141,7 +146,8 @@ bool UART_transmit(UARTx_t UARTx, const uint8_t* buf, uint8_t data_length)
 					
 					data_length --;
 				}
-	
+
+				// Waits until TC=1
 				while (!READ_REG(USART1_reg->SR, 1UL, 6U));
 				UART_state = UART_STATE_READY;
 			}
@@ -194,12 +200,20 @@ bool UART_receive(UARTx_t UARTx, volatile uint8_t* buf)
 	return OK;
 }
 
-int UART_Read(void)
+int UART_Read(void) // Returns received data, or -1 if no new data is available.
 {
+	int data = -1;
+
+	/*
+	 * Create a critical section to prevent a race condition. This ensures that checking
+	 * the isUpdated_UART flag and reading from UART_recv_buf is an atomic operation.
+	 */
 	NVIC_ICER_setVal(USART1_Interrupt);
-	int data = 0;
-	data = (int)(UART_recv_buf[0] | (UART_recv_buf[1] << 8));
-	isUpdated_UART = false;
+	if (isUpdated_UART == true)
+	{
+		data = (int)(UART_recv_buf[0] | (UART_recv_buf[1] << 8));
+		isUpdated_UART = false;
+	}
 	NVIC_ISER_setVal(USART1_Interrupt);
 
 	return data;
