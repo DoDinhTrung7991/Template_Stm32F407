@@ -57,7 +57,7 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 				// Parity error interrupt enable
 				WRITE_REG(USART1_reg->CR1, 1UL, 8U, 0UL); // Disabled as it's not handled
 				// Enable/Disable Error interrupt
-				WRITE_REG(USART1_reg->CR3, 1UL, 0U, 0UL);
+				WRITE_REG(USART1_reg->CR3, 1UL, 0U, 1UL);
 				// Enable Transmitter
 				WRITE_REG(USART1_reg->CR1, 1UL, 3U, 1UL);
 				// TXE interrupt enable

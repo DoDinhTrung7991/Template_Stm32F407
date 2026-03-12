@@ -19,7 +19,7 @@ extern uint32_t _sbss;
 extern uint32_t _ebss;
 extern uint32_t _estack;
 
-volatile uint8_t UART_recv_buf[2] = {0, 0};
+__attribute__((section(".ccmram_data")))volatile uint8_t UART_recv_buf[2] = {0, 0};
 __attribute__((section(".ccmram_data")))volatile uint32_t SysTick_cnt_u32 = 0;
 
 void Default_Handler(void);
@@ -244,17 +244,17 @@ void Reset_Handler(void)
 
 void EXTI3_Handler(void)
 {
-	if ((EXTI_reg->PR >> 3U) & 1UL)
+	if (READ_REG(EXTI_reg->PR, 1UL, 3U))
 	{
-		EXTI_reg->PR |= (1UL << 3U);
+        SET_BIT(EXTI_reg->PR, 3U);
 	}
 }
 
 void EXTI4_Handler(void)
 {
-	if ((EXTI_reg->PR >> 4U) & 1UL)
+	if (READ_REG(EXTI_reg->PR, 1UL, 4U))
 	{
-		EXTI_reg->PR |= (1UL << 4U);
+        SET_BIT(EXTI_reg->PR, 4U);
 	}
 }
 
@@ -265,6 +265,12 @@ void USART1_Handler(void)
 	{
 		UART_receive(USART1, UART_recv_buf);
 	}
+
+    if (READ_REG(USART1_reg->SR, 1UL, 3U) || READ_REG(USART1_reg->SR, 1UL, 2U) || READ_REG(USART1_reg->SR, 1UL, 1U) || READ_REG(USART1_reg->SR, 1UL, 0U)) // Check Overrun error, Noise ,Framing error and Parity error
+    {
+        uint32_t temp = USART1_reg->DR; // Clear error flags
+        (void)temp;
+    }
 }
 
 void SysTick_Handler(void)
