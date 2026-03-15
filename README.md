@@ -1,6 +1,9 @@
 This project is for building Hexapod Robot
-Robot Movement: PWM
-Self Balance: I2C -- MPU-6050, PWM
+Robot Movement: stm32f407vet6 PWM
+Self Balance: stm32f407vet6 I2C -- MPU-6050, stm32f407vet6 PWM
+Radar: stm32f407vet6 GPIO -- HC-SR04
 Robot Control:
-    UART -- HC-06 -- personal laptop
-    I2C -- esp8266 -- personal laptop
+    stm32f407vet6 UART -- HC-05 -- personal laptop (bluetoothctl, picocom, rfcomm)
+    stm32f407vet6 I2C -- esp8266 -- personal laptop (picocom, esptool)
+    Timer generate pulse 20Hz trigger event read data and send control signal to motor and other MCU.
+    

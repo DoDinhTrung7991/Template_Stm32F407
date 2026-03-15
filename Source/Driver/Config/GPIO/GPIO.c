@@ -79,6 +79,7 @@ bool GPIO_IN_getVal(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8)
 	if (15U < pos_u8)
 	{
 		GPIOx_IN_getVal_check_b = NOT_OK;
+		return GPIOx_IN_getVal_check_b;
 	}
 	else
 	{
@@ -724,6 +725,7 @@ bool GPIO_OUT_setVal(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, bool setVal_b)
 	if (15U < pos_u8)
 	{
 		returnVal = NOT_OK;
+		return returnVal;
 	}
 
 	switch (GPIOx_en)
@@ -760,41 +762,5 @@ bool GPIO_OUT_setVal(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, bool setVal_b)
 
 static void GPIO_init(GPIO_ENABLE_t GPIOxEN)
 {
-	switch (GPIOxEN)
-	{
-		case GPIOAEN:
-			WRITE_REG(RCC_reg->AHB1ENR, 1UL, GPIOAEN, 1UL);
-			break;
-		case GPIOBEN:
-			WRITE_REG(RCC_reg->AHB1ENR, 1UL, GPIOBEN, 1UL);
-			break;
-		case GPIOCEN:
-			WRITE_REG(RCC_reg->AHB1ENR, 1UL, GPIOCEN, 1UL);
-			break;
-		case GPIODEN:
-			WRITE_REG(RCC_reg->AHB1ENR, 1UL, GPIODEN, 1UL);
-			break;
-		case GPIOEEN:
-			WRITE_REG(RCC_reg->AHB1ENR, 1UL, GPIOEEN, 1UL);
-			break;
-		case GPIOFEN:
-			WRITE_REG(RCC_reg->AHB1ENR, 1UL, GPIOFEN, 1UL);
-			break;
-		case GPIOGEN:
-			WRITE_REG(RCC_reg->AHB1ENR, 1UL, GPIOGEN, 1UL);
-			break;
-		case GPIOHEN:
-			WRITE_REG(RCC_reg->AHB1ENR, 1UL, GPIOHEN, 1UL);
-			break;
-		case GPIOIEN:
-			WRITE_REG(RCC_reg->AHB1ENR, 1UL, GPIOIEN, 1UL);
-			break;
-		case GPIOJEN:
-			WRITE_REG(RCC_reg->AHB1ENR, 1UL, GPIOJEN, 1UL);
-			break;
-		case GPIOKEN:
-			WRITE_REG(RCC_reg->AHB1ENR, 1UL, GPIOKEN, 1UL);
-			break;
-	}
 	SET_BIT(RCC_reg->AHB1ENR, GPIOxEN);
 }

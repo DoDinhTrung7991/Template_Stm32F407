@@ -14,7 +14,6 @@ typedef struct USART_str
 	volatile uint32_t GTPR;
 } USART_t;
 
-extern USART_t *USART1_reg;
-// USART_t *USART1_reg = (USART_t*)0x40011000;
+extern USART_t *USART_reg[6];
 
 #endif

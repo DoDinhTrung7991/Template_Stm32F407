@@ -27,6 +27,9 @@ OBJ_LIST = \
 #----------	MACRO_END	----------#
 
 #----------	MODULE_START	----------#
+clean: $(BUILD_RESULT_PATH)
+	rm -rf $(BUILD_RESULT_PATH)*
+
 all: elf
 	arm-none-eabi-objcopy -O binary $(BUILD_RESULT_PATH)/Hexapod_Robot.elf $(BUILD_RESULT_PATH)/Hexapod_Robot.bin
 
@@ -80,5 +83,8 @@ $(STARTUP_CODE_OBJ_PATH)startup__stm32f407vet6.o: $(STARTUP_CODE_PATH)startup__s
 	$(CC) $(CFLAGS) $(STARTUP_CODE_INC) -o $@ $^
 #----------	MODULE_END		----------#
 
-clean: $(BUILD_RESULT_PATH)
-	rm -rf $(BUILD_RESULT_PATH)*
+erase:
+	st-flash erase
+
+flash: $(BUILD_RESULT_PATH)Hexapod_Robot.bin
+	st-flash write $(BUILD_RESULT_PATH)Hexapod_Robot.bin 0x08000000

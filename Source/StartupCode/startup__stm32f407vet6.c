@@ -3,6 +3,7 @@
 #include "main.h"
 #include "init.h"
 #include "EXTI_header.h"
+#include "DMA_header.h"
 #include "UART.h"
 
 typedef void (*isr_fnct_t)(void);
@@ -19,7 +20,6 @@ extern uint32_t _sbss;
 extern uint32_t _ebss;
 extern uint32_t _estack;
 
-__attribute__((section(".ccmram_data")))volatile uint8_t UART_recv_buf[2] = {0, 0};
 __attribute__((section(".ccmram_data")))volatile uint32_t SysTick_cnt_u32 = 0;
 
 void Default_Handler(void);
@@ -102,9 +102,9 @@ __attribute__((weak, alias("Default_Handler")))void CAN2_RX0_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void CAN2_RX1_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void CAN2_SCE_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void OTG_FS_Handler(void);
-__attribute__((weak, alias("Default_Handler")))void DMA2_Stream5_Handler(void);
+void DMA2_Stream5_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void DMA2_Stream6_Handler(void);
-__attribute__((weak, alias("Default_Handler")))void DMA2_Stream7_Handler(void);
+void DMA2_Stream7_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void USART6_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void I2C3_EV_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void I2C3_ER_Handler(void);
@@ -260,15 +260,17 @@ void EXTI4_Handler(void)
 
 void USART1_Handler(void)
 {
-	// Check if the RXNE (Receive Not Empty) flag is set in the Status Register
-	if (READ_REG(USART1_reg->SR, 1UL, 5U))
+    // Check if the RXNE (Receive Not Empty) flag is set in the Status Register
+	if (READ_REG(USART_reg[USART1]->SR, 1UL, 5U))
 	{
-		UART_receive(USART1, UART_recv_buf);
+        UART_state_rx[USART1] = UART_STATE_BUSY;
+		// UART_receive(USART1, UART_recv_buf[USART1]);
+        // UART_state_rx[USART1] = UART_STATE_READY;
 	}
 
-    if (READ_REG(USART1_reg->SR, 1UL, 3U) || READ_REG(USART1_reg->SR, 1UL, 2U) || READ_REG(USART1_reg->SR, 1UL, 1U) || READ_REG(USART1_reg->SR, 1UL, 0U)) // Check Overrun error, Noise ,Framing error and Parity error
+    if (READ_REG(USART_reg[USART1]->SR, 1UL, 3U) || READ_REG(USART_reg[USART1]->SR, 1UL, 2U) || READ_REG(USART_reg[USART1]->SR, 1UL, 1U) || READ_REG(USART_reg[USART1]->SR, 1UL, 0U)) // Check Overrun error, Noise ,Framing error and Parity error
     {
-        uint32_t temp = USART1_reg->DR; // Clear error flags
+        uint32_t temp = USART_reg[USART1]->DR; // Clear error flags
         (void)temp;
     }
 }
@@ -299,5 +301,24 @@ static inline void clear_bss(uint32_t *pStart, uint32_t *pEnd)
     while (pStart < pEnd)
     {
         *(pStart++) = 0;
+    }
+}
+
+void DMA2_Stream5_Handler(void)
+{
+    if (READ_REG(DMA2_reg->HISR, 1UL, 11U))
+    {
+        SET_BIT(DMA2_reg->HIFCR, 11U);
+        isUpdated_UART[USART1] = true;
+        UART_state_rx[USART1] = UART_STATE_READY;
+    }
+}
+
+void DMA2_Stream7_Handler(void)
+{
+    if (READ_REG(DMA2_reg->HISR, 1UL, 27U))
+    {
+        SET_BIT(DMA2_reg->HIFCR, 27U);
+        UART_state_tx[USART1] = UART_STATE_READY;
     }
 }
