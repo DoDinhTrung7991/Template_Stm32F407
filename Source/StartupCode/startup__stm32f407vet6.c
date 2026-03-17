@@ -5,6 +5,7 @@
 #include "EXTI_header.h"
 #include "DMA_header.h"
 #include "UART.h"
+#include "Timer.h"
 
 typedef void (*isr_fnct_t)(void);
 
@@ -244,16 +245,28 @@ void Reset_Handler(void)
 
 void EXTI3_Handler(void)
 {
+	// It is not recommended to call initialization functions inside an ISR.
+    // Timer_init() and PWM_init() should be called once in main().
+    // This handler can be used to change the duty cycle, for example.
+    PWM_Generation(TIM1, CHANN_3, 50, 0); // Example: Set duty cycle to 50%
+
 	if (READ_REG(EXTI_reg->PR, 1UL, 3U))
 	{
+		// Clear the pending bit by writing 1 to it
         SET_BIT(EXTI_reg->PR, 3U);
 	}
 }
 
 void EXTI4_Handler(void)
 {
+	// It is not recommended to call initialization functions inside an ISR.
+    // Timer_init() and PWM_init() should be called once in main().
+    // This handler can be used to change the duty cycle, for example.
+	PWM_Generation(TIM1, CHANN_2, 50, 0); // Example: Set duty cycle to 50%
+
 	if (READ_REG(EXTI_reg->PR, 1UL, 4U))
 	{
+		// Clear the pending bit by writing 1 to it
         SET_BIT(EXTI_reg->PR, 4U);
 	}
 }
@@ -264,13 +277,14 @@ void USART1_Handler(void)
 	if (READ_REG(USART_reg[USART1]->SR, 1UL, 5U))
 	{
         UART_state_rx[USART1] = UART_STATE_BUSY;
-		// UART_receive(USART1, UART_recv_buf[USART1]);
-        // UART_state_rx[USART1] = UART_STATE_READY;
 	}
 
-    if (READ_REG(USART_reg[USART1]->SR, 1UL, 3U) || READ_REG(USART_reg[USART1]->SR, 1UL, 2U) || READ_REG(USART_reg[USART1]->SR, 1UL, 1U) || READ_REG(USART_reg[USART1]->SR, 1UL, 0U)) // Check Overrun error, Noise ,Framing error and Parity error
+    // Check Overrun error, Noise ,Framing error, Parity error and IDLE flag
+    if (READ_REG(USART_reg[USART1]->SR, 1UL, 3U) || READ_REG(USART_reg[USART1]->SR, 1UL, 2U) || READ_REG(USART_reg[USART1]->SR, 1UL, 1U) || READ_REG(USART_reg[USART1]->SR, 1UL, 0U) || READ_REG(USART_reg[USART1]->SR, 1UL, 4U))
     {
-        uint32_t temp = USART_reg[USART1]->DR; // Clear error flags
+        // Clear error flags
+        uint32_t temp = USART_reg[USART1]->SR;
+        temp = USART_reg[USART1]->DR;
         (void)temp;
     }
 }

@@ -7,8 +7,10 @@
 
 typedef enum
 {
-    GP,
+    IN,
+    GP_OUT,
     AF,
+    Analog
 } GPIO_purpose_t;
 
 typedef enum
@@ -34,7 +36,8 @@ typedef enum
 typedef enum
 {
     PP,
-    OD
+    OD,
+    None
 } GPIO_outputType_t;
 
 typedef enum
@@ -60,16 +63,11 @@ typedef enum
 	GPIOFEN,
 	GPIOGEN,
 	GPIOHEN,
-	GPIOIEN,
-	GPIOJEN,
-	GPIOKEN
+	GPIOIEN
 } GPIO_ENABLE_t;
 
-extern bool GPIOx_IN_getVal_check_b;
-
-bool GPIO_IN_setup(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, GPIO_pullDir_t GPIO_pullDir);
-bool GPIO_IN_getVal(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8);
-bool GPIO_OUT_setup(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, GPIO_purpose_t GPIO_purpose_en, AFRx_t AFx_en, GPIO_outputType_t GPIO_outputType_en, GPIO_pullDir_t GPIO_pullDir_en);
+bool GPIO_setup(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, GPIO_purpose_t GPIO_purpose_en, AFRx_t AFx_en, GPIO_outputType_t GPIO_outputType_en, GPIO_pullDir_t GPIO_pullDir_en);
+int GPIO_IN_getVal(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8);
 bool GPIO_OUT_setVal(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, bool setVal_b);
 
 #endif

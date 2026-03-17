@@ -15,5 +15,7 @@
 #define INITTED 1
 #define NOT_INITTED 0
 
+#define FAIL -1
+
 #endif
 

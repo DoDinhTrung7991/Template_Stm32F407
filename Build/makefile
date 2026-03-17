@@ -12,8 +12,8 @@ include ../Source/StartupCode/module.mk
 
 #----------	MACRO_START	----------#
 CC = arm-none-eabi-gcc
-CFLAGS = -c -mcpu=cortex-m4 -mthumb -std=gnu11 -O0 -ffunction-sections -fdata-sections -Wall
-LDFLAGS = -Wall -nostdlib -T $(SRC_PATH)Linker/linker.ld -Wl,--gc-sections -Wl,-Map=$(BUILD_RESULT_PATH)final.map
+CFLAGS = -c -mcpu=cortex-m4 -mthumb -std=gnu11 -O0 -ffunction-sections -fdata-sections -Wall -ggdb
+LDFLAGS = -Wall -nostdlib -T $(SRC_PATH)Linker/linker.ld -Wl,--gc-sections -Wl,-Map=$(BUILD_RESULT_PATH)final.map -ggdb
 OBJ_LIST = \
 	$(STATIC_INIT_OBJ_PATH)init_static.o \
 	$(CONFIG_INIT_OBJ_PATH)init.o \

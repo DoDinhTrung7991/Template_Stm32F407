@@ -7,10 +7,7 @@ typedef struct SYSCFG_str
 {
 	volatile uint32_t MEMRMP;
 	volatile uint32_t PMC;
-	volatile uint32_t EXTICR1;
-	volatile uint32_t EXTICR2;
-	volatile uint32_t EXTICR3;
-	volatile uint32_t EXTICR4;
+	volatile uint32_t EXTICR[4];
 	volatile uint32_t CMPCR;
 } SYSCFG_t;
 
