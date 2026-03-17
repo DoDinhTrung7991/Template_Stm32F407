@@ -289,6 +289,25 @@ void USART1_Handler(void)
     }
 }
 
+void DMA2_Stream5_Handler(void)
+{
+    if (READ_REG(DMA2_reg->HISR, 1UL, 11U))
+    {
+        SET_BIT(DMA2_reg->HIFCR, 11U);
+        isUpdated_UART[USART1] = true;
+        UART_state_rx[USART1] = UART_STATE_READY;
+    }
+}
+
+void DMA2_Stream7_Handler(void)
+{
+    if (READ_REG(DMA2_reg->HISR, 1UL, 27U))
+    {
+        SET_BIT(DMA2_reg->HIFCR, 27U);
+        UART_state_tx[USART1] = UART_STATE_READY;
+    }
+}
+
 void SysTick_Handler(void)
 {
     SysTick_cnt_u32 ++;
@@ -315,24 +334,5 @@ static inline void clear_bss(uint32_t *pStart, uint32_t *pEnd)
     while (pStart < pEnd)
     {
         *(pStart++) = 0;
-    }
-}
-
-void DMA2_Stream5_Handler(void)
-{
-    if (READ_REG(DMA2_reg->HISR, 1UL, 11U))
-    {
-        SET_BIT(DMA2_reg->HIFCR, 11U);
-        isUpdated_UART[USART1] = true;
-        UART_state_rx[USART1] = UART_STATE_READY;
-    }
-}
-
-void DMA2_Stream7_Handler(void)
-{
-    if (READ_REG(DMA2_reg->HISR, 1UL, 27U))
-    {
-        SET_BIT(DMA2_reg->HIFCR, 27U);
-        UART_state_tx[USART1] = UART_STATE_READY;
     }
 }

@@ -26,7 +26,7 @@ OBJ_LIST = \
 	$(STARTUP_CODE_OBJ_PATH)startup__stm32f407vet6.o
 
 CFLAGS_GDB = -c -mcpu=cortex-m4 -mthumb -std=gnu11 -O0 -ffunction-sections -fdata-sections -Wall -ggdb
-LDFLAGS_GDB = -Wall -nostdlib -T $(SRC_PATH)Linker/linker.ld -Wl,--gc-sections -Wl,-Map=$(BUILD_RESULT_PATH)final.map -ggdb
+LDFLAGS_GDB = -Wall -nostdlib -T $(SRC_PATH)Linker/linker.ld -Wl,--gc-sections -Wl,-Map=$(BUILD_RESULT_PATH)final_gdb.map -ggdb
 OBJ_LIST_GDB = \
 	$(STATIC_INIT_OBJ_PATH)init_static_gdb.o \
 	$(CONFIG_INIT_OBJ_PATH)init_gdb.o \
