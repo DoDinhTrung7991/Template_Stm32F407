@@ -2,6 +2,7 @@
 #include "bit_operator.h"
 #include "main.h"
 #include "init.h"
+#include "GPIO.h"
 #include "EXTI_header.h"
 #include "DMA_header.h"
 #include "UART.h"
@@ -315,9 +316,13 @@ void SysTick_Handler(void)
 
 void Default_Handler(void)
 {
+    GPIO_setup(GPIOAEN, 7, GP_OUT, AF0, PP, PU);
+    GPIO_OUT_setVal(GPIOAEN, 7, 1);
+    GPIO_OUT_setVal(GPIOAEN, 7, 0);
+
     while (1)
     {
-        // user define
+        
     }
 }
 

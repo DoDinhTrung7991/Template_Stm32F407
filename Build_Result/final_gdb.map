@@ -82,7 +82,7 @@ LOAD ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
  .isr_vector    0x08000000      0x174 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
                 0x08000000                isr_vector_arr
 
-.text           0x08000174     0x173c
+.text           0x08000174     0x1768
  *(.text*)
  .text.initConfig
                 0x08000174       0x4e ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
@@ -141,7 +141,7 @@ LOAD ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
                 0x08001828       0x1c ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
                 0x08001828                SysTick_Handler
  .text.Default_Handler
-                0x08001844        0x8 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
+                0x08001844       0x32 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
                 0x08001844                RTC_WKUP_Handler
                 0x08001844                FLASH_Handler
                 0x08001844                SVCall_Handler
@@ -229,33 +229,34 @@ LOAD ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
                 0x08001844                OTG_FS_WKUP_Handler
                 0x08001844                OTG_HS_EP1_IN_Handler
  .text.LMAtoVMA
-                0x0800184c       0x32 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
+                0x08001876       0x32 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
  .text.clear_bss
-                0x0800187e       0x2a ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
-                0x080018a8                        . = ALIGN (0x4)
+                0x080018a8       0x2a ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
+                0x080018d4                        . = ALIGN (0x4)
+ *fill*         0x080018d2        0x2 
  *(.rodata*)
- .rodata        0x080018a8        0x8 ../Build_Result/Driver/Driver_Init/Config/init_gdb.o
-                0x080018b0                        . = ALIGN (0x4)
+ .rodata        0x080018d4        0x8 ../Build_Result/Driver/Driver_Init/Config/init_gdb.o
+                0x080018dc                        . = ALIGN (0x4)
 
-.glue_7         0x080018b0        0x0
- .glue_7        0x080018b0        0x0 linker stubs
+.glue_7         0x080018dc        0x0
+ .glue_7        0x080018dc        0x0 linker stubs
 
-.glue_7t        0x080018b0        0x0
- .glue_7t       0x080018b0        0x0 linker stubs
+.glue_7t        0x080018dc        0x0
+ .glue_7t       0x080018dc        0x0 linker stubs
 
-.vfp11_veneer   0x080018b0        0x0
- .vfp11_veneer  0x080018b0        0x0 linker stubs
+.vfp11_veneer   0x080018dc        0x0
+ .vfp11_veneer  0x080018dc        0x0 linker stubs
 
-.v4_bx          0x080018b0        0x0
- .v4_bx         0x080018b0        0x0 linker stubs
+.v4_bx          0x080018dc        0x0
+ .v4_bx         0x080018dc        0x0 linker stubs
 
-.iplt           0x080018b0        0x0
- .iplt          0x080018b0        0x0 ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
+.iplt           0x080018dc        0x0
+ .iplt          0x080018dc        0x0 ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
 
-.rel.dyn        0x080018b0        0x0
- .rel.iplt      0x080018b0        0x0 ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
+.rel.dyn        0x080018dc        0x0
+ .rel.iplt      0x080018dc        0x0 ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
 
-.data           0x20000000       0x84 load address 0x080018b0
+.data           0x20000000       0x84 load address 0x080018dc
                 0x20000000                        _sdata = .
  *(.data*)
  .data.FLASH_reg
@@ -317,12 +318,12 @@ LOAD ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
                 0x2000006c                USART_reg
                 0x20000084                        . = ALIGN (0x4)
                 0x20000084                        _edata = .
-                0x080018b0                        _sidata = LOADADDR (.data)
+                0x080018dc                        _sidata = LOADADDR (.data)
 
-.igot.plt       0x20000084        0x0 load address 0x08001934
+.igot.plt       0x20000084        0x0 load address 0x08001960
  .igot.plt      0x20000084        0x0 ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
 
-.bss            0x20000084       0x54 load address 0x08001934
+.bss            0x20000084       0x54 load address 0x08001960
                 0x20000084                        _sbss = .
  *(.bss*)
  .bss.APB1_freq
@@ -342,7 +343,7 @@ LOAD ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
  *fill*         0x200000d4        0x4 
                 0x200000d8                        _ebss = .
 
-.ccmram_data    0x10000000       0x30 load address 0x08001934
+.ccmram_data    0x10000000       0x30 load address 0x08001960
                 0x10000000                        _ccmram_sdata = .
  *(.ccmram_data*)
  .ccmram_data   0x10000000       0x2a ../Build_Result/Driver/Communication/UART/UART_gdb.o
@@ -356,7 +357,7 @@ LOAD ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
                 0x1000002c                SysTick_cnt_u32
                 0x10000030                        . = ALIGN (0x4)
                 0x10000030                        _ccmram_edata = .
-                0x08001934                        _ccmram_sidata = LOADADDR (.ccmram_data)
+                0x08001960                        _ccmram_sidata = LOADADDR (.ccmram_data)
 
 .ccmram_bss     0x10000030        0x0
                 0x10000030                        _ccmram_sbss = .
@@ -364,14 +365,14 @@ LOAD ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
                 0x10000030                        . = ALIGN (0x4)
                 0x10000030                        _ccmram_ebss = .
 
-.heap           0x200000d8      0x200 load address 0x08001988
+.heap           0x200000d8      0x200 load address 0x080019b4
                 0x200000d8                        _heap_start = .
                 0x200002d8                        . = (. + _Min_heap_size)
  *fill*         0x200000d8      0x200 
                 0x200002d8                        . = ALIGN (0x8)
                 0x200002d8                        _heap_end = .
 
-.stack          0x200002d8    0x1fd28 load address 0x08001b88
+.stack          0x200002d8    0x1fd28 load address 0x08001bb4
                 0x20020000                        _estack = (ORIGIN (SRAM) + LENGTH (SRAM))
                 0x2001fc00                        _stack_start = (_estack - _Min_stack_size)
                 0x2001fc00                        . = _stack_start
@@ -385,7 +386,7 @@ LOAD ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
 OUTPUT(../Build_Result//Hexapod_Robot_gdb.elf elf32-littlearm)
 LOAD linker stubs
 
-.debug_info     0x00000000     0x3d60
+.debug_info     0x00000000     0x3eee
  .debug_info    0x00000000      0x8e1 ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
  .debug_info    0x000008e1      0x2ec ../Build_Result/Driver/Driver_Init/Config/init_gdb.o
  .debug_info    0x00000bcd      0x913 ../Build_Result/Driver/Interrupt/Interrupt_gdb.o
@@ -394,9 +395,9 @@ LOAD linker stubs
  .debug_info    0x0000230e      0x7e1 ../Build_Result/Driver/Timer/PWM_gdb.o
  .debug_info    0x00002aef      0xa6d ../Build_Result/Driver/Communication/UART/UART_gdb.o
  .debug_info    0x0000355c      0x23c ../Build_Result/Control/main_gdb.o
- .debug_info    0x00003798      0x5c8 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
+ .debug_info    0x00003798      0x756 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
 
-.debug_abbrev   0x00000000      0xc8e
+.debug_abbrev   0x00000000      0xc9a
  .debug_abbrev  0x00000000      0x1c9 ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
  .debug_abbrev  0x000001c9       0xe1 ../Build_Result/Driver/Driver_Init/Config/init_gdb.o
  .debug_abbrev  0x000002aa      0x1c0 ../Build_Result/Driver/Interrupt/Interrupt_gdb.o
@@ -405,7 +406,7 @@ LOAD linker stubs
  .debug_abbrev  0x000006cd      0x181 ../Build_Result/Driver/Timer/PWM_gdb.o
  .debug_abbrev  0x0000084e      0x1e3 ../Build_Result/Driver/Communication/UART/UART_gdb.o
  .debug_abbrev  0x00000a31       0x9c ../Build_Result/Control/main_gdb.o
- .debug_abbrev  0x00000acd      0x1c1 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
+ .debug_abbrev  0x00000acd      0x1cd ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
 
 .debug_aranges  0x00000000      0x1e0
  .debug_aranges
@@ -448,7 +449,7 @@ LOAD linker stubs
  .debug_rnglists
                 0x00000102       0x4a ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
 
-.debug_line     0x00000000     0x1d4c
+.debug_line     0x00000000     0x1d78
  .debug_line    0x00000000      0x53f ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
  .debug_line    0x0000053f       0xd9 ../Build_Result/Driver/Driver_Init/Config/init_gdb.o
  .debug_line    0x00000618      0x1d6 ../Build_Result/Driver/Interrupt/Interrupt_gdb.o
@@ -457,7 +458,7 @@ LOAD linker stubs
  .debug_line    0x00000c40      0x8b2 ../Build_Result/Driver/Timer/PWM_gdb.o
  .debug_line    0x000014f2      0x485 ../Build_Result/Driver/Communication/UART/UART_gdb.o
  .debug_line    0x00001977       0xbc ../Build_Result/Control/main_gdb.o
- .debug_line    0x00001a33      0x319 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
+ .debug_line    0x00001a33      0x345 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
 
 .debug_str      0x00000000     0x1333
  .debug_str     0x00000000     0x1333 ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
@@ -469,7 +470,7 @@ LOAD linker stubs
  .debug_str     0x00001333      0x466 ../Build_Result/Driver/Timer/PWM_gdb.o
  .debug_str     0x00001333      0x8bf ../Build_Result/Driver/Communication/UART/UART_gdb.o
  .debug_str     0x00001333      0x26c ../Build_Result/Control/main_gdb.o
- .debug_str     0x00001333      0x47c ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
+ .debug_str     0x00001333      0x555 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
 
 .comment        0x00000000       0x26
  .comment       0x00000000       0x26 ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
@@ -504,7 +505,7 @@ LOAD linker stubs
  .ARM.attributes
                 0x00000170       0x2e ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
 
-.debug_frame    0x00000000      0x55c
+.debug_frame    0x00000000      0x564
  .debug_frame   0x00000000      0x124 ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
  .debug_frame   0x00000124       0x34 ../Build_Result/Driver/Driver_Init/Config/init_gdb.o
  .debug_frame   0x00000158       0x88 ../Build_Result/Driver/Interrupt/Interrupt_gdb.o
@@ -513,4 +514,4 @@ LOAD linker stubs
  .debug_frame   0x000002c8       0x64 ../Build_Result/Driver/Timer/PWM_gdb.o
  .debug_frame   0x0000032c       0xac ../Build_Result/Driver/Communication/UART/UART_gdb.o
  .debug_frame   0x000003d8       0x30 ../Build_Result/Control/main_gdb.o
- .debug_frame   0x00000408      0x154 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
+ .debug_frame   0x00000408      0x15c ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
