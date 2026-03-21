@@ -14,44 +14,57 @@ SECTIONS
 {
     .isr_vector :
     {
+        . = ALIGN(4);
         KEEP(*(.isr_vector))
+        . = ALIGN(4);
     } > FLASH
 
     .text :
     {
-        *(.text*)
         . = ALIGN(4);
+        *(.text)
+        *(.text*)
+        KEEP(*(.init))
+        KEEP(*(.fini))
+        *(.rodata)
         *(.rodata*)
         . = ALIGN(4);
+        _etext = .;
     } > FLASH
 
-    .data : AT(ADDR(.text) + SIZEOF(.text))
+    _sidata = _etext;
+
+    .data : AT(_sidata)
     {
+        . = ALIGN(4);
         _sdata = .;
+        *(.data)
         *(.data*)
         . = ALIGN(4);
         _edata = .;
     } > SRAM
 
-    _sidata = LOADADDR(.data);
-
-    .bss (NOLOAD):
+    .bss :
     {
+        . = ALIGN(4);
         _sbss = .;
+        *(COMMON)
+        *(.bss)
         *(.bss*)
-        . = ALIGN(8);
+        . = ALIGN(4);
         _ebss = .;
     } > SRAM
 
-    .ccmram_data : AT(LOADADDR(.data) + SIZEOF(.data))
+    _sccm_lma = _sidata + SIZEOF(.data);
+    _ccmram_sidata = _sccm_lma;
+
+    .ccmram_data : AT(_sccm_lma)
     {
         _ccmram_sdata = .;
         *(.ccmram_data*)
         . = ALIGN(4);
         _ccmram_edata = .;
     } > CCMRAM
-
-    _ccmram_sidata = LOADADDR(.ccmram_data);
 
     .ccmram_bss (NOLOAD):
     {
@@ -69,7 +82,7 @@ SECTIONS
         _heap_end = .;
     } > SRAM
 
-    .stack :
+    .stack (NOLOAD):
     {
         _estack = ORIGIN(SRAM) + LENGTH(SRAM);
         _stack_start = _estack - _Min_stack_size;

@@ -4,6 +4,7 @@
 #include "init_static.h"
 #include "USART_header.h"
 #include "DMA_header.h"
+#include "queue.h"
 
 #define UART_STATE_READY 1
 #define UART_STATE_BUSY 0
@@ -19,14 +20,13 @@ typedef enum
 } UARTx_t;
 
 extern volatile bool UART_init_state[6];
-extern volatile uint16_t UART_recv_buf[6][1];
+extern volatile queue_t UART_recv_buf[6];
 extern volatile bool UART_state_tx[6];
 extern volatile bool UART_state_rx[6];
 extern volatile uint8_t isUpdated_UART[6];
 
 bool UART_init(UARTx_t UARTx, uint32_t baudrate);
 bool UART_transmit(UARTx_t UARTx, const uint16_t *buf, uint8_t data_length);
-bool UART_receive(UARTx_t UARTx, volatile uint16_t* buf);
-int UART_Read(UARTx_t UARTx);
+void UART_Read(UARTx_t UARTx, uint16_t *buf, uint8_t data_length);
 
 #endif

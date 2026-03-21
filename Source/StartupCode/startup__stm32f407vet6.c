@@ -7,6 +7,7 @@
 #include "DMA_header.h"
 #include "UART.h"
 #include "Timer.h"
+#include "queue.h"
 
 typedef void (*isr_fnct_t)(void);
 
@@ -128,8 +129,13 @@ __attribute__((section(".isr_vector"), used)) isr_fnct_t isr_vector_arr[] = // v
     MemManage_Handler,
     BusFault_Handler,
     UsageFault_Handler,
+    (isr_fnct_t)0,
+    (isr_fnct_t)0,
+    (isr_fnct_t)0,
+    (isr_fnct_t)0,
     SVCall_Handler,
     Debug_Handler,
+    (isr_fnct_t)0,
     PendSV_Handler,
     SysTick_Handler,
     WWDG_Handler,
@@ -280,8 +286,36 @@ void USART1_Handler(void)
         UART_state_rx[USART1] = UART_STATE_BUSY;
 	}
 
-    // Check Overrun error, Noise ,Framing error, Parity error and IDLE flag
-    if (READ_REG(USART_reg[USART1]->SR, 1UL, 3U) || READ_REG(USART_reg[USART1]->SR, 1UL, 2U) || READ_REG(USART_reg[USART1]->SR, 1UL, 1U) || READ_REG(USART_reg[USART1]->SR, 1UL, 0U) || READ_REG(USART_reg[USART1]->SR, 1UL, 4U))
+    // Check IDLE flag
+    if (READ_REG(USART_reg[USART1]->SR, 1UL, 4U))
+    {
+        // Clear error flags
+        UART_state_rx[USART1] = UART_STATE_BUSY;
+        uint32_t temp = USART_reg[USART1]->SR;
+        temp = USART_reg[USART1]->DR;
+        while ((uint8_t)(ARR_SIZE - DMA2_reg->S[5].NDTR) == UART_recv_buf[USART1].rear);
+
+        if (UART_recv_buf[USART1].isFull)
+        {
+            UART_recv_buf[USART1].overrun = true;
+            UART_recv_buf[USART1].isFull = false;
+        }
+
+        if ((uint8_t)(ARR_SIZE - 1) == UART_recv_buf[USART1].rear)
+        {
+            UART_recv_buf[USART1].isFull = true;
+            UART_recv_buf[USART1].overrun = false;
+        }
+
+        UART_recv_buf[USART1].isEmpty = false;
+        UART_recv_buf[USART1].rear = (uint8_t)(ARR_SIZE - DMA2_reg->S[5].NDTR);
+        isUpdated_UART[USART1] = true;
+        UART_state_rx[USART1] = UART_STATE_READY;
+        (void)temp;
+    }
+
+    // Check Overrun error, Noise ,Framing error and Parity error
+    if (READ_REG(USART_reg[USART1]->SR, 1UL, 3U) || READ_REG(USART_reg[USART1]->SR, 1UL, 2U) || READ_REG(USART_reg[USART1]->SR, 1UL, 1U) || READ_REG(USART_reg[USART1]->SR, 1UL, 0U))
     {
         // Clear error flags
         uint32_t temp = USART_reg[USART1]->SR;
@@ -295,7 +329,6 @@ void DMA2_Stream5_Handler(void)
     if (READ_REG(DMA2_reg->HISR, 1UL, 11U))
     {
         SET_BIT(DMA2_reg->HIFCR, 11U);
-        isUpdated_UART[USART1] = true;
         UART_state_rx[USART1] = UART_STATE_READY;
     }
 }
@@ -316,10 +349,6 @@ void SysTick_Handler(void)
 
 void Default_Handler(void)
 {
-    GPIO_setup(GPIOAEN, 7, GP_OUT, AF0, PP, PU);
-    GPIO_OUT_setVal(GPIOAEN, 7, 1);
-    GPIO_OUT_setVal(GPIOAEN, 7, 0);
-
     while (1)
     {
         

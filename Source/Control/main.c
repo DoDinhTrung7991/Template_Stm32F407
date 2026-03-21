@@ -1,20 +1,18 @@
-#include "GPIO.h"
+#include "UART.h"
 
 int main(void)
 {
+    uint16_t my_buf[3] = {48, 49, 50};
 
-    GPIO_setup(GPIOEEN, 4, IN, AF0, PP, PU);
-    GPIO_setup(GPIOAEN, 6, GP_OUT, AF0, PP, PU);
+    UART_init(USART1, 115200);
+    UART_transmit(USART1, my_buf, 3);
    
     while(1)
     {
-        if(!GPIO_IN_getVal(GPIOEEN, 4))
+        if (isUpdated_UART[USART1])
         {
-            GPIO_OUT_setVal(GPIOAEN, 6, 0);
-        }
-        else
-        {
-            GPIO_OUT_setVal(GPIOAEN, 6, 1);
+            UART_Read(USART1, my_buf, 3);
+            UART_transmit(USART1, my_buf, 3);
         }
     }
 }

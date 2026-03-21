@@ -172,11 +172,13 @@ static bool oscSetup(oscillatorConf_t oscillatorConf_st)
 	switch (oscillatorConf_st.Oscillator)
 	{
 		case HSE:
+			uint32_t timeout_counter = 0;
 			SET_BIT(RCC_reg->CR, 16U); // Enable HSE clock
 
 			while (!(READ_REG(RCC_reg->CR, 1UL, 17U))) // wait until HSE ready
 			{
-				// do nothing
+				timeout_counter++;
+				if (timeout_counter > 0x10000) return NOT_OK; // Timeout exit
 			}
 
 			if (DISABLE == oscillatorConf_st.PLL.PLL_enable)
