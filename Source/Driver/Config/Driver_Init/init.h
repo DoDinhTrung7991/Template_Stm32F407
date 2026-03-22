@@ -1,7 +1,9 @@
 #ifndef _INIT_H_
 #define _INIT_H_
 
-extern volatile unsigned int SysTick_cnt;
+#include "stdUtility.h"
+
+extern volatile uint32_t SysTick_cnt_u32;
 
 bool SystemInit(void);
 
