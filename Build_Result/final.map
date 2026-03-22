@@ -839,7 +839,7 @@ LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v7e-m/nofp/crtn.o
                 0x08002a54                        _sccm_lma = (_sidata + SIZEOF (.data))
                 0x08002a54                        _ccmram_sidata = _sccm_lma
 
-.ccmram_data    0x10000000       0x24 load address 0x08002a54
+.ccmram_data    0x10000000       0x20 load address 0x08002a54
                 0x10000000                        _ccmram_sdata = .
  *(.ccmram_data*)
  .ccmram_data   0x10000000       0x1e ../Build_Result/Driver/Communication/UART/UART.o
@@ -847,24 +847,25 @@ LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v7e-m/nofp/crtn.o
                 0x10000008                UART_init_state
                 0x10000010                UART_state_tx
                 0x10000018                UART_state_rx
+                0x10000020                        . = ALIGN (0x4)
  *fill*         0x1000001e        0x2 
- .ccmram_data   0x10000020        0x4 ../Build_Result/StartupCode/startup__stm32f407vet6.o
-                0x10000020                SysTick_cnt_u32
-                0x10000024                        . = ALIGN (0x4)
-                0x10000024                        _ccmram_edata = .
+                0x10000020                        _ccmram_edata = .
 
-.ccmram_bss     0x10000024        0x0
-                0x10000024                        _ccmram_sbss = .
+.ccmram_bss     0x10000020        0x4 load address 0x08002a74
+                0x10000020                        _ccmram_sbss = .
  *(.ccmram_bss*)
+ .ccmram_bss    0x10000020        0x4 ../Build_Result/StartupCode/startup__stm32f407vet6.o
+                0x10000020                SysTick_cnt_u32
                 0x10000024                        . = ALIGN (0x4)
                 0x10000024                        _ccmram_ebss = .
 
 .heap           0x200003fc      0x204 load address 0x08002dc8
-                0x200003fc                        _heap_start = .
-                0x200005fc                        . = (. + _Min_heap_size)
- *fill*         0x200003fc      0x200 
+                0x20000400                        . = ALIGN (0x8)
+ *fill*         0x200003fc        0x4 
+                0x20000400                        _heap_start = .
+                0x20000600                        . = (. + _Min_heap_size)
+ *fill*         0x20000400      0x200 
                 0x20000600                        . = ALIGN (0x8)
- *fill*         0x200005fc        0x4 
                 0x20000600                        _heap_end = .
 
 .stack          0x20000600    0x1fa00 load address 0x08002fcc

@@ -76,6 +76,7 @@ SECTIONS
 
     .heap (NOLOAD):
     {
+        . = ALIGN(8);
         _heap_start = .;
         . += _Min_heap_size;
         . = ALIGN(8);

@@ -23,7 +23,7 @@ extern uint32_t _sbss;
 extern uint32_t _ebss;
 extern uint32_t _estack;
 
-__attribute__((section(".ccmram_data")))volatile uint32_t SysTick_cnt_u32 = 0;
+__attribute__((section(".ccmram_bss")))volatile uint32_t SysTick_cnt_u32;
 
 void Default_Handler(void);
 

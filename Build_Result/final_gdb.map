@@ -840,7 +840,7 @@ LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v7e-m/nofp/crtn.o
                 0x08002a54                        _sccm_lma = (_sidata + SIZEOF (.data))
                 0x08002a54                        _ccmram_sidata = _sccm_lma
 
-.ccmram_data    0x10000000       0x24 load address 0x08002a54
+.ccmram_data    0x10000000       0x20 load address 0x08002a54
                 0x10000000                        _ccmram_sdata = .
  *(.ccmram_data*)
  .ccmram_data   0x10000000       0x1e ../Build_Result/Driver/Communication/UART/UART_gdb.o
@@ -848,24 +848,25 @@ LOAD /usr/lib/gcc/arm-none-eabi/14.2.1/thumb/v7e-m/nofp/crtn.o
                 0x10000008                UART_init_state
                 0x10000010                UART_state_tx
                 0x10000018                UART_state_rx
+                0x10000020                        . = ALIGN (0x4)
  *fill*         0x1000001e        0x2 
- .ccmram_data   0x10000020        0x4 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
-                0x10000020                SysTick_cnt_u32
-                0x10000024                        . = ALIGN (0x4)
-                0x10000024                        _ccmram_edata = .
+                0x10000020                        _ccmram_edata = .
 
-.ccmram_bss     0x10000024        0x0
-                0x10000024                        _ccmram_sbss = .
+.ccmram_bss     0x10000020        0x4 load address 0x08002a74
+                0x10000020                        _ccmram_sbss = .
  *(.ccmram_bss*)
+ .ccmram_bss    0x10000020        0x4 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
+                0x10000020                SysTick_cnt_u32
                 0x10000024                        . = ALIGN (0x4)
                 0x10000024                        _ccmram_ebss = .
 
 .heap           0x200003fc      0x204 load address 0x08002dc8
-                0x200003fc                        _heap_start = .
-                0x200005fc                        . = (. + _Min_heap_size)
- *fill*         0x200003fc      0x200 
+                0x20000400                        . = ALIGN (0x8)
+ *fill*         0x200003fc        0x4 
+                0x20000400                        _heap_start = .
+                0x20000600                        . = (. + _Min_heap_size)
+ *fill*         0x20000400      0x200 
                 0x20000600                        . = ALIGN (0x8)
- *fill*         0x200005fc        0x4 
                 0x20000600                        _heap_end = .
 
 .stack          0x20000600    0x1fa00 load address 0x08002fcc
@@ -925,7 +926,7 @@ LOAD linker stubs
  .comment       0x0000004c       0x27 ../Build_Result/Algorithm/queue/queue_gdb.o
  .comment       0x0000004c       0x27 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libg.a(libc_a-memset.o)
 
-.debug_info     0x00000000     0x4194
+.debug_info     0x00000000     0x4192
  .debug_info    0x00000000      0x8fd ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
  .debug_info    0x000008fd      0x2ec ../Build_Result/Driver/Driver_Init/Config/init_gdb.o
  .debug_info    0x00000be9      0x913 ../Build_Result/Driver/Interrupt/Interrupt_gdb.o
@@ -934,11 +935,11 @@ LOAD linker stubs
  .debug_info    0x0000232a      0x7e1 ../Build_Result/Driver/Timer/PWM_gdb.o
  .debug_info    0x00002b0b      0xb2d ../Build_Result/Driver/Communication/UART/UART_gdb.o
  .debug_info    0x00003638      0x195 ../Build_Result/Control/main_gdb.o
- .debug_info    0x000037cd      0x68b ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
- .debug_info    0x00003e58      0x207 ../Build_Result/Algorithm/queue/queue_gdb.o
- .debug_info    0x0000405f      0x135 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libg.a(libc_a-memset.o)
+ .debug_info    0x000037cd      0x689 ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
+ .debug_info    0x00003e56      0x207 ../Build_Result/Algorithm/queue/queue_gdb.o
+ .debug_info    0x0000405d      0x135 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libg.a(libc_a-memset.o)
 
-.debug_abbrev   0x00000000      0xf0c
+.debug_abbrev   0x00000000      0xf0d
  .debug_abbrev  0x00000000      0x1d4 ../Build_Result/Driver/Driver_Init/Static/init_static_gdb.o
  .debug_abbrev  0x000001d4       0xe1 ../Build_Result/Driver/Driver_Init/Config/init_gdb.o
  .debug_abbrev  0x000002b5      0x1c0 ../Build_Result/Driver/Interrupt/Interrupt_gdb.o
@@ -947,9 +948,9 @@ LOAD linker stubs
  .debug_abbrev  0x000006d8      0x181 ../Build_Result/Driver/Timer/PWM_gdb.o
  .debug_abbrev  0x00000859      0x1fd ../Build_Result/Driver/Communication/UART/UART_gdb.o
  .debug_abbrev  0x00000a56       0xfc ../Build_Result/Control/main_gdb.o
- .debug_abbrev  0x00000b52      0x1ce ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
- .debug_abbrev  0x00000d20      0x135 ../Build_Result/Algorithm/queue/queue_gdb.o
- .debug_abbrev  0x00000e55       0xb7 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libg.a(libc_a-memset.o)
+ .debug_abbrev  0x00000b52      0x1cf ../Build_Result/StartupCode/startup__stm32f407vet6_gdb.o
+ .debug_abbrev  0x00000d21      0x135 ../Build_Result/Algorithm/queue/queue_gdb.o
+ .debug_abbrev  0x00000e56       0xb7 /usr/lib/gcc/arm-none-eabi/14.2.1/../../../arm-none-eabi/lib/thumb/v7e-m/nofp/libg.a(libc_a-memset.o)
 
 .debug_aranges  0x00000000      0x230
  .debug_aranges
