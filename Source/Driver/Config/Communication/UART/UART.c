@@ -5,9 +5,6 @@
 #include "Interrupt.h"
 #include <string.h>
 
-DMA_t *DMA1_reg = (DMA_t*)0x40026000;
-DMA_t *DMA2_reg = (DMA_t*)0x40026400;
-
 USART_t *USART_reg[6] = {
 	(USART_t*)0x40011000,
 	(USART_t*)0x40004400,
@@ -52,12 +49,9 @@ __attribute__((section(".ccmram_data")))volatile bool UART_state_rx[6] = {
 
 bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 {
-	DMA_t *DMA_reg_tx = NULL;
-	DMA_t *DMA_reg_rx = NULL;
-	uint8_t DMA_Stream_tx = 0;
-	uint8_t DMA_Stream_rx = 0;
-	uint32_t DMA_Channel_tx = 0;
-	uint32_t DMA_Channel_rx = 0;
+    DMA_direct_param_t DMA_direct_param_tx_st;
+    DMA_direct_param_t DMA_direct_param_rx_st;
+	buffer_t buffer_info_rx_st;
 
 	UART_init_state[UARTx] = NOT_INITTED;
 
@@ -71,6 +65,61 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 		switch (UARTx)
 		{
 			case USART1:
+				DMA_direct_param_tx_st = (DMA_direct_param_t)
+				{
+					{
+						.DMAx = DMA2,
+						.stream = Stream_7,
+						.channel = 4
+					},
+					{
+						.double_buffer_en = disable,
+						.peri_data_size = half_word,
+						.mem_data_size = half_word,
+						.peri_mode = fixed,
+						.mem_mode = not_fixed
+					},
+					{
+						.dir = mem_to_peri,
+						.flow_controller = DMA
+					},
+					{
+						.stream_priority = low,
+						.interrupt_en_u8 = (TCIE | DMEIE)
+					}
+				};
+
+				DMA_direct_param_rx_st = (DMA_direct_param_t)
+				{
+					{
+						.DMAx = DMA2,
+						.stream = Stream_5,
+						.channel = 4
+					},
+					{
+						.double_buffer_en = disable,
+						.peri_data_size = half_word,
+						.mem_data_size = half_word,
+						.peri_mode = fixed,
+						.mem_mode = circular
+					},
+					{
+						.dir = peri_to_mem,
+						.flow_controller = DMA
+					},
+					{
+						.stream_priority = medium,
+						.interrupt_en_u8 = (TCIE | DMEIE)
+					}
+				};
+
+				buffer_info_rx_st = (buffer_t)
+				{
+					.data_length = ARR_SIZE,
+					.peri_addr = &USART_reg[UARTx]->DR,
+					.mem_addr = UART_recv_buf[UARTx].buf
+				};
+
 				GPIO_setup(GPIOAEN, 9, AF, AF7, PP, NoP);	// TX
 				GPIO_setup(GPIOAEN, 10, AF, AF7, PP, NoP);	// RX
 
@@ -79,6 +128,8 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 
 				// Enable clock for USART peripheral
 				SET_BIT(RCC_reg->APB2ENR, 4U);
+				// Enable Interrupt line
+				NVIC_ISER_setVal(USART1_Interrupt);
 
 				break;
 			
@@ -91,6 +142,8 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 
 				// Enable clock for USART peripheral
 				SET_BIT(RCC_reg->APB1ENR, 17U);
+				// Enable Interrupt line
+				NVIC_ISER_setVal(USART2_Interrupt);
 
 				break;
 
@@ -103,6 +156,8 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 
 				// Enable clock for USART peripheral
 				SET_BIT(RCC_reg->APB1ENR, 18U);
+				// Enable Interrupt line
+				NVIC_ISER_setVal(USART3_Interrupt);
 
 				break;
 			
@@ -115,6 +170,8 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 
 				// Enable clock for UART peripheral
 				SET_BIT(RCC_reg->APB1ENR, 19U);
+				// Enable Interrupt line
+				NVIC_ISER_setVal(UART4_Interrupt);
 
 				break;
 			
@@ -124,6 +181,8 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 
 				// Enable clock for UART peripheral
 				SET_BIT(RCC_reg->APB1ENR, 20U);
+				// Enable Interrupt line
+				NVIC_ISER_setVal(UART5_Interrupt);
 
 				break;
 			
@@ -133,6 +192,8 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 
 				// Enable clock for USART peripheral
 				SET_BIT(RCC_reg->APB2ENR, 5U);
+				// Enable Interrupt line
+				NVIC_ISER_setVal(USART6_Interrupt);
 
 				break;
 			
@@ -190,8 +251,6 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 	CLEAR_BIT(USART_reg[UARTx]->CR3, 5U);
 	// IrDA mode enable
 	CLEAR_BIT(USART_reg[UARTx]->CR3, 1U);
-
-	// Start Interrupt settings
 	// Enable/Disable Error interrupt
 	SET_BIT(USART_reg[UARTx]->CR3, 0U);
 	// Parity error interrupt enable
@@ -205,148 +264,13 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 	// RXNE interrupt enable
 	CLEAR_BIT(USART_reg[UARTx]->CR1, 5U);
 	
-	switch (UARTx)
-	{
-		case USART1:
-			NVIC_ISER_setVal(USART1_Interrupt);
-			break;
-		
-		case USART2:
-			NVIC_ISER_setVal(USART2_Interrupt);
-			break;
-
-		case USART3:
-			NVIC_ISER_setVal(USART3_Interrupt);
-			break;
-		
-		case UART4:
-			NVIC_ISER_setVal(UART4_Interrupt);
-			break;
-		
-		case UART5:
-			NVIC_ISER_setVal(UART5_Interrupt);
-			break;
-		
-		case USART6:
-			NVIC_ISER_setVal(USART6_Interrupt);
-			break;
-		
-		default:
-			break;
-	}
-
-	// End Interrupt settings
-
-	// Start DMA settings
-	switch (UARTx)
-	{
-		case USART1:
-			DMA_reg_tx = DMA2_reg;
-			DMA_reg_rx = DMA2_reg;
-			DMA_Stream_tx = 7;
-			DMA_Stream_rx = 5;
-			DMA_Channel_tx = 4;
-			DMA_Channel_rx = 4;
-			// Enable Clock for DMA2
-			SET_BIT(RCC_reg->AHB1ENR, 22U);
-			//Clear transfer complete interrupt flag
-			SET_BIT(DMA2_reg->HIFCR, 27U);
-			SET_BIT(DMA2_reg->HIFCR, 11U);
-			// Enable DMA Interrupt for Tx
-			NVIC_ISER_setVal(DMA2_Stream7);
-			// Enable DMA Interrupt for Rx
-			NVIC_ISER_setVal(DMA2_Stream5);
-			
-			break;
-
-		default:
-			return NOT_OK;
-
-			break;
-	}
-
-	if ((7 < DMA_Stream_tx) || (7 < DMA_Stream_rx) || (7 < DMA_Channel_tx) || (7 < DMA_Channel_rx))
+	// Setting for DMA
+	if ((NOT_OK == DMA_direct_init(DMA_direct_param_tx_st)) || (NOT_OK == DMA_direct_init(DMA_direct_param_rx_st)))
 	{
 		return NOT_OK;
 	}
-	
-	// Start setting DMA for Tx
-	// Reset DMA
-	DMA_reg_tx->S[DMA_Stream_tx].CR = 0UL;
-	while (READ_REG(DMA_reg_tx->S[DMA_Stream_tx].CR, 1UL, 0U));
-	// DMA stream x peripheral address register
-	DMA_reg_tx->S[DMA_Stream_tx].PAR = (uint32_t)&USART_reg[UARTx]->DR;
-	// Direct mode enable/disable
-	CLEAR_BIT(DMA_reg_tx->S[DMA_Stream_tx].FCR, 2U);
-	// Channel selection
-	WRITE_REG(DMA_reg_tx->S[DMA_Stream_tx].CR, 7UL, 25U, DMA_Channel_tx);
-	// Memory data size
-	WRITE_REG(DMA_reg_tx->S[DMA_Stream_tx].CR, 3UL, 13U, 1UL);
-	// Peripheral data size
-	WRITE_REG(DMA_reg_tx->S[DMA_Stream_tx].CR, 3UL, 11U, 1UL);
-	// Memory increment mode
-	SET_BIT(DMA_reg_tx->S[DMA_Stream_tx].CR, 10U);
-	// Peripheral increment mode
-	CLEAR_BIT(DMA_reg_tx->S[DMA_Stream_tx].CR, 9U);
-	// Circular mode
-	CLEAR_BIT(DMA_reg_tx->S[DMA_Stream_tx].CR, 8U);
-	// Data transfer direction
-	WRITE_REG(DMA_reg_tx->S[DMA_Stream_tx].CR, 3UL, 6U, 1UL);
-	// Peripheral flow controller
-	CLEAR_BIT(DMA_reg_tx->S[DMA_Stream_tx].CR, 5U);
-	// Transfer complete interrupt enable
-	SET_BIT(DMA_reg_tx->S[DMA_Stream_tx].CR, 4U);
-	// Half transfer interrupt enable
-	CLEAR_BIT(DMA_reg_tx->S[DMA_Stream_tx].CR, 3U);
-	// Transfer error interrupt enable
-	CLEAR_BIT(DMA_reg_tx->S[DMA_Stream_tx].CR, 2U);
-	// Direct mode error interrupt enable
-	CLEAR_BIT(DMA_reg_tx->S[DMA_Stream_tx].CR, 1U);
-	// End setting DMA for Tx
 
-	// Start setting DMA for Rx
-	// Reset DMA
-	queue_init((queue_t*)&UART_recv_buf[UARTx]);
-	DMA_reg_rx->S[DMA_Stream_rx].CR = 0UL;
-	while (READ_REG(DMA_reg_rx->S[DMA_Stream_rx].CR, 1UL, 0U));
-	// DMA stream x number of data register
-	WRITE_REG(DMA_reg_rx->S[DMA_Stream_rx].NDTR, 0xFFFFUL, 0U, ARR_SIZE);
-	// DMA stream x peripheral address register
-	DMA_reg_rx->S[DMA_Stream_rx].PAR = (uint32_t)&USART_reg[UARTx]->DR;
-	// DMA stream x memory 0 address register
-	DMA_reg_rx->S[DMA_Stream_rx].M0AR = (uint32_t)UART_recv_buf[UARTx].buf;
-	// Direct mode enable/disable
-	CLEAR_BIT(DMA_reg_rx->S[DMA_Stream_rx].FCR, 2U);
-	// Channel selection
-	WRITE_REG(DMA_reg_rx->S[DMA_Stream_rx].CR, 7UL, 25U, DMA_Channel_rx);
-	// Memory data size
-	WRITE_REG(DMA_reg_rx->S[DMA_Stream_rx].CR, 3UL, 13U, 1UL);
-	// Peripheral data size
-	WRITE_REG(DMA_reg_rx->S[DMA_Stream_rx].CR, 3UL, 11U, 1UL);
-	// Memory increment mode
-	SET_BIT(DMA_reg_rx->S[DMA_Stream_rx].CR, 10U);
-	// Peripheral increment mode
-	CLEAR_BIT(DMA_reg_rx->S[DMA_Stream_rx].CR, 9U);
-	// Circular mode
-	SET_BIT(DMA_reg_rx->S[DMA_Stream_rx].CR, 8U);
-	// Data transfer direction
-	WRITE_REG(DMA_reg_rx->S[DMA_Stream_rx].CR, 3UL, 6U, 0UL);
-	// Peripheral flow controller
-	CLEAR_BIT(DMA_reg_rx->S[DMA_Stream_rx].CR, 5U);
-	// Transfer complete interrupt enable
-	SET_BIT(DMA_reg_rx->S[DMA_Stream_rx].CR, 4U);
-	// Half transfer interrupt enable
-	CLEAR_BIT(DMA_reg_rx->S[DMA_Stream_rx].CR, 3U);
-	// Transfer error interrupt enable
-	CLEAR_BIT(DMA_reg_rx->S[DMA_Stream_rx].CR, 2U);
-	// Direct mode error interrupt enable
-	CLEAR_BIT(DMA_reg_rx->S[DMA_Stream_rx].CR, 1U);
-	//Enable Stream
-	SET_BIT(DMA_reg_rx->S[DMA_Stream_rx].CR, 0U);
-	// End setting DMA for Rx
-
-	// End DMA settings
-
+	DMA_transfer(DMA_direct_param_rx_st.Stream_info_st, buffer_info_rx_st);
 	// Enable USART
 	SET_BIT(USART_reg[UARTx]->CR1, 13U);
 	// Enable Transmitter
@@ -366,14 +290,13 @@ bool UART_transmit(UARTx_t UARTx, const uint16_t *buf, uint8_t data_length)
 	}
 	else
 	{
-		DMA_t *DMA_reg_tx = NULL;
-		uint8_t DMA_Stream_tx = 0;
+		stream_channel_t Stream_info_st;
 
 		switch (UARTx)
 		{
 			case USART1:
-				DMA_reg_tx = DMA2_reg;
-				DMA_Stream_tx = 7;
+				Stream_info_st.DMAx = DMA2;
+				Stream_info_st.stream = Stream_7;
 
 				break;
 
@@ -384,13 +307,15 @@ bool UART_transmit(UARTx_t UARTx, const uint16_t *buf, uint8_t data_length)
 		}
 		
 		UART_state_tx[UARTx] = UART_STATE_BUSY;
-		// Disable DMA Stream
-		CLEAR_BIT(DMA_reg_tx->S[DMA_Stream_tx].CR, 0U);
-		while (READ_REG(DMA_reg_tx->S[DMA_Stream_tx].CR, 1UL, 0U));
-		DMA_reg_tx->S[DMA_Stream_tx].NDTR = data_length;
-		DMA_reg_tx->S[DMA_Stream_tx].M0AR = (uint32_t)buf;
-		// Enable DMA Stream
-		SET_BIT(DMA_reg_tx->S[DMA_Stream_tx].CR, 0U);
+		DMA_transfer
+		(
+			Stream_info_st, 
+			(buffer_t){
+				.data_length = data_length,
+				.peri_addr = &USART_reg[UARTx]->DR,
+				.mem_addr = (uint16_t *)buf
+			}
+		);
 	}
 
 	return OK;
@@ -411,7 +336,7 @@ void UART_Read(UARTx_t UARTx, uint16_t *buf, uint8_t data_length)
 		switch (UARTx)
 		{
 			case USART1:
-				DMA_reg_rx = DMA2_reg;
+				DMA_reg_rx = DMA_reg[DMA2];
 				DMA_Stream_rx = 5;
 				// Disable DMA Stream
 				CLEAR_BIT(DMA_reg_rx->S[DMA_Stream_rx].CR, 0U);

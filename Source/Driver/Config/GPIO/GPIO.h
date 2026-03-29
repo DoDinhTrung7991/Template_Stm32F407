@@ -66,7 +66,10 @@ typedef enum
 	GPIOIEN
 } GPIO_ENABLE_t;
 
-bool GPIO_setup(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, GPIO_purpose_t GPIO_purpose_en, AFRx_t AFx_en, GPIO_outputType_t GPIO_outputType_en, GPIO_pullDir_t GPIO_pullDir_en);
+bool GPIO_setup(
+    GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, GPIO_purpose_t GPIO_purpose_en, 
+    AFRx_t AFx_en, GPIO_outputType_t GPIO_outputType_en, GPIO_pullDir_t GPIO_pullDir_en
+);
 int GPIO_IN_getVal(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8);
 bool GPIO_OUT_setVal(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, bool setVal_b);
 

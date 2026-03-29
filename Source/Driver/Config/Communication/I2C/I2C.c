@@ -6,5 +6,6 @@
 
 bool I2C_init(I2Cx_t I2Cx_en)
 {
-    
+    // TODO: Implement I2C initialization logic.
+    return true;
 }

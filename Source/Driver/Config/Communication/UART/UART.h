@@ -3,7 +3,7 @@
 
 #include "init_static.h"
 #include "USART_header.h"
-#include "DMA_header.h"
+#include "DMA.h"
 #include "queue.h"
 
 #define UART_STATE_READY 1

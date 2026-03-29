@@ -293,7 +293,7 @@ void USART1_Handler(void)
         UART_state_rx[USART1] = UART_STATE_BUSY;
         uint32_t temp = USART_reg[USART1]->SR;
         temp = USART_reg[USART1]->DR;
-        while ((uint8_t)(ARR_SIZE - DMA2_reg->S[5].NDTR) == UART_recv_buf[USART1].rear);
+        while ((uint8_t)(ARR_SIZE - DMA_reg[DMA2]->S[5].NDTR) == UART_recv_buf[USART1].rear);
 
         if (UART_recv_buf[USART1].isFull)
         {
@@ -308,7 +308,7 @@ void USART1_Handler(void)
         }
 
         UART_recv_buf[USART1].isEmpty = false;
-        UART_recv_buf[USART1].rear = (uint8_t)(ARR_SIZE - DMA2_reg->S[5].NDTR);
+        UART_recv_buf[USART1].rear = (uint8_t)(ARR_SIZE - DMA_reg[DMA2]->S[5].NDTR);
         isUpdated_UART[USART1] = true;
         UART_state_rx[USART1] = UART_STATE_READY;
         (void)temp;
@@ -326,19 +326,28 @@ void USART1_Handler(void)
 
 void DMA2_Stream5_Handler(void)
 {
-    if (READ_REG(DMA2_reg->HISR, 1UL, 11U))
+    if (READ_REG(DMA_reg[DMA2]->ISR[1], 1UL, 11U))
     {
-        SET_BIT(DMA2_reg->HIFCR, 11U);
-        UART_state_rx[USART1] = UART_STATE_READY;
+        SET_BIT(DMA_reg[DMA2]->IFCR[1], 11U);
+    }
+
+    if (READ_REG(DMA_reg[DMA2]->ISR[1], 1UL, 8U))
+    {
+        SET_BIT(DMA_reg[DMA2]->IFCR[1], 8U);
     }
 }
 
 void DMA2_Stream7_Handler(void)
 {
-    if (READ_REG(DMA2_reg->HISR, 1UL, 27U))
+    if (READ_REG(DMA_reg[DMA2]->ISR[1], 1UL, 27U))
     {
-        SET_BIT(DMA2_reg->HIFCR, 27U);
+        SET_BIT(DMA_reg[DMA2]->IFCR[1], 27U);
         UART_state_tx[USART1] = UART_STATE_READY;
+    }
+
+    if (READ_REG(DMA_reg[DMA2]->ISR[1], 1UL, 24U))
+    {
+        SET_BIT(DMA_reg[DMA2]->IFCR[1], 24U);
     }
 }
 

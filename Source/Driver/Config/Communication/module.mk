@@ -6,6 +6,7 @@ Communication_INC = \
 	-I$(UART_PATH) \
 	-I$(GPIO_PATH) \
 	-I$(QUEUE_PATH) \
+	-I$(DMA_PATH) \
 	-I$(INTERRUPT_PATH) \
 	-I$(STATIC_INIT_PATH) \
 	-I$(REGISTERS_PATH) \

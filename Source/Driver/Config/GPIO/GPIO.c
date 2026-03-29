@@ -15,7 +15,10 @@ GPIOx_t *GPIO_reg[9] = {
 
 static void GPIO_init(GPIO_ENABLE_t GPIOx_en);
 
-bool GPIO_setup(GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, GPIO_purpose_t GPIO_purpose_en, AFRx_t AFx_en, GPIO_outputType_t GPIO_outputType_en, GPIO_pullDir_t GPIO_pullDir_en)
+bool GPIO_setup(
+	GPIO_ENABLE_t GPIOx_en, uint8_t pos_u8, GPIO_purpose_t GPIO_purpose_en, 
+	AFRx_t AFx_en, GPIO_outputType_t GPIO_outputType_en, GPIO_pullDir_t GPIO_pullDir_en
+)
 {
 	bool returnVal = OK;
 

@@ -28,6 +28,10 @@ SECTIONS
         KEEP(*(.fini))
         *(.rodata)
         *(.rodata*)
+        
+        /* Specific ordering for exception handling */
+        *(.ARM.exidx .ARM.exidx.*)
+
         . = ALIGN(4);
         _etext = .;
     } > FLASH

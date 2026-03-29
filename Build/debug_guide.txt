@@ -1,0 +1,26 @@
+#	gdb-multiarch Hexapod_Robot_gdb.elf
+# 	target extended-remote :3333	#Connect to stlink port 3333
+# 	monitor reset halt				#Reset and halt
+# 	load							# Nạp chương trình vào Flash của STM32.
+# 	break function
+# 	continue
+# 	next: Chạy dòng tiếp theo (không nhảy vào hàm).
+# 	step: Nhảy vào bên trong hàm.
+# 	print variable_name
+# 	info registers: Xem giá trị các thanh ghi CPU.
+# 	quit: Thoát khỏi gdb
+# 	break main.c:55       # Dòng 55 của file main.c
+# 	break *0x08000abc     # Set breakpoint theo địa chỉ bộ nhớ
+# 	break main.c:55 if temp > 30 # Set breakpoint có điều kiện
+# 	condition 1 counter == 100 # Add condition to available breakpoint
+# 	disable [ID]	Tạm thời vô hiệu hóa breakpoint nhưng không xóa
+# 	enable [ID]	Kích hoạt lại breakpoint đã bị disable
+# 	delete [ID]	Xóa breakpoint
+# 	info breakpoints: Xem danh sách breakpoint
+# 	info source: xem địa chỉ source và flags build
+# 	symbol-file your_project.elf  # Đảm bảo GDB đã nạp symbol
+# 	info functions: Kiểm tra cấu trúc File ELF
+#	directory: Xóa toàn bộ danh sách để làm lại từ đầu
+#   sudo rfcomm bind /dev/rfcomm0 00:20:10:08:27:DB 1
+#   sudo rfcomm connect /dev/rfcomm0 00:20:10:08:27:DB
+#   sudo rfcomm release /dev/rfcomm0
