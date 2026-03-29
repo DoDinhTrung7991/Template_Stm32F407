@@ -116,7 +116,7 @@ bool DMA_direct_init(DMA_direct_param_t DMA_direct_param_st)
 	}
 	
 	// Peripheral increment mode
-	switch (DMA_direct_param_st.data_info_st.mem_mode)
+	switch (DMA_direct_param_st.data_info_st.peri_mode)
 	{
 		case fixed:
 			CLEAR_BIT(DMA_reg[DMA_direct_param_st.Stream_info_st.DMAx]->S[DMA_direct_param_st.Stream_info_st.stream].CR, 9U);
