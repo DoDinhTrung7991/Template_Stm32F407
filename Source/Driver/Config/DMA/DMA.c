@@ -55,19 +55,12 @@ bool DMA_direct_init(DMA_direct_param_t DMA_direct_param_st)
 
 	while (READ_REG(DMA_reg[DMA_direct_param_st.Stream_info_st.DMAx]->S[DMA_direct_param_st.Stream_info_st.stream].CR, 1UL, 0U))
 	{
-		if (!SysTick_cnt_u32)
+		if (
+			((SysTick_cnt_u32 < timegap_u32) && (10UL < (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32))))
+			|| ((SysTick_cnt_u32 >= timegap_u32) && (10UL < (SysTick_cnt_u32 - timegap_u32)))
+		)
 		{
-			if (100UL < (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32)))
-			{
-				return NOT_OK;
-			}
-		}
-		else
-		{
-			if (100UL < (SysTick_cnt_u32 - timegap_u32))
-			{
-				return NOT_OK;
-			}
+			return NOT_OK;
 		}
 	}
 

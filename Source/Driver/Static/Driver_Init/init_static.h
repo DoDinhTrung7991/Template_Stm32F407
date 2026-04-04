@@ -2,8 +2,8 @@
 
 #define HSI_VALUE 16000000U
 #define HSE_VALUE 8000000U
-#define LSE_VALUE 32768
-#define LSI_VALUE 32768
+#define LSE_VALUE 32768U
+#define LSI_VALUE 32000U
 
 typedef  enum
 {

@@ -1,18 +1,24 @@
-#include "UART.h"
+#include "GPIO.h"
+#include "IWDG.h"
+#include "Interrupt.h"
 
 int main(void)
 {
-    uint16_t my_buf[3] = {48, 49, 50};
+    uint32_t timegap_u32;
 
-    UART_init(USART1, 9600);
-    UART_transmit(USART1, my_buf, 3);
-   
-    while(1)
-    {
-        if (isUpdated_UART[USART1])
-        {
-            UART_Read(USART1, my_buf, 3);
-            UART_transmit(USART1, my_buf, 3);
-        }
-    }
+    GPIO_setup(GPIOAEN, 6U, GP_OUT, AF0, PP, PU);
+    GPIO_OUT_setVal(GPIOAEN, 6U, 1);
+
+    timegap_u32 = SysTick_cnt_u32;
+
+	while (
+		((SysTick_cnt_u32 < timegap_u32) && (10UL > (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32))))
+		|| ((SysTick_cnt_u32 >= timegap_u32) && (10UL > (SysTick_cnt_u32 - timegap_u32)))
+	);
+
+    GPIO_OUT_setVal(GPIOAEN, 6U, 0);
+    IWDG_init(_2000ms);
+    while (1);
+
+    return 0;
 }
