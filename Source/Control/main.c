@@ -1,5 +1,5 @@
 #include "GPIO.h"
-#include "IWDG.h"
+#include "WWDG.h"
 #include "Interrupt.h"
 
 int main(void)
@@ -17,7 +17,7 @@ int main(void)
 	);
 
     GPIO_OUT_setVal(GPIOAEN, 6U, 0);
-    IWDG_init(_2000ms);
+    WWDG_init(div_8, 128, 0);
     while (1);
 
     return 0;

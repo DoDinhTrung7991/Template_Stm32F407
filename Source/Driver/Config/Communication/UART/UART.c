@@ -219,13 +219,16 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 	// Calculate Baudrate
 	uint32_t fck = 0;
 
-	if ((USART1 == UARTx) || (USART6 == UARTx)) {
+	if ((USART1 == UARTx) || (USART6 == UARTx))
+	{
 		fck = APB2_freq;
 	}
-	else if ((USART2 == UARTx) || (USART3 == UARTx) || (UART4 == UARTx) || (UART5 == UARTx)) {
+	else if ((USART2 == UARTx) || (USART3 == UARTx) || (UART4 == UARTx) || (UART5 == UARTx))
+	{
 		fck = APB1_freq;
 	}
-	else {
+	else
+	{
 		return NOT_OK;
 	}
 
