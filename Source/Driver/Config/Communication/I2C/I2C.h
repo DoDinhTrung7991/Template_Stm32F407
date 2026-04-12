@@ -1,13 +1,15 @@
 #ifndef _I2C_H_
 #define _I2C_H_
 
-#include "stdUtility.h"
+// Driver is only written for Sm mode and Master
 
-#define I2C_STATE_READY 1
-#define I2C_STATE_BUSY 0
+#include "stdUtility.h"
 
 #define INITTED 1
 #define NOT_INITTED 0
+
+#define I2C_STATE_READY 1
+#define I2C_STATE_BUSY 0
 
 typedef enum
 {
@@ -19,4 +21,3 @@ typedef enum
 bool I2C_init(I2Cx_t I2Cx_en);
 
 #endif
-

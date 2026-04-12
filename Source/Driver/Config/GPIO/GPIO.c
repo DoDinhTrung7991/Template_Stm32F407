@@ -82,6 +82,9 @@ bool GPIO_setup(
 				break;
 		}
 
+		// Set Output speed: Medium speed
+		WRITE_REG(GPIO_reg[GPIOx_en]->OSPEEDR, 3UL, (pos_u8 * 2U), 1UL);
+
 		switch (GPIO_pullDir_en)
 		{
 			case PU:
