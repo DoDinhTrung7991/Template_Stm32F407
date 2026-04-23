@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define ARR_SIZE 64U // user define
+#define ARR_SIZE 16U // user define
 
 typedef struct queue_st
 {

@@ -49,9 +49,60 @@ __attribute__((section(".ccmram_data")))volatile bool UART_state_rx[6] = {
 
 bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 {
-    DMA_direct_param_t DMA_direct_param_tx_st;
-    DMA_direct_param_t DMA_direct_param_rx_st;
-	buffer_t buffer_info_rx_st;
+    DMA_direct_param_t DMA_direct_param_tx_st = (DMA_direct_param_t)
+	{
+		{
+			.DMAx = 0,
+			.stream = 0,
+			.channel = 0
+		},
+		{
+			.double_buffer_en = disable,
+			.peri_data_size = half_word,
+			.mem_data_size = half_word,
+			.peri_mode = fixed,
+			.mem_mode = not_fixed
+		},
+		{
+			.dir = mem_to_peri,
+			.flow_controller = DMA
+		},
+		{
+			.stream_priority = low,
+			.interrupt_en_u8 = (TCIE | DMEIE)
+		}
+	};
+
+    DMA_direct_param_t DMA_direct_param_rx_st = (DMA_direct_param_t)
+	{
+		{
+			.DMAx = 0,
+			.stream = 0,
+			.channel = 0
+		},
+		{
+			.double_buffer_en = disable,
+			.peri_data_size = half_word,
+			.mem_data_size = half_word,
+			.peri_mode = fixed,
+			.mem_mode = circular
+		},
+		{
+			.dir = peri_to_mem,
+			.flow_controller = DMA
+		},
+		{
+			.stream_priority = medium,
+			.interrupt_en_u8 = (TCIE | DMEIE)
+		}
+	};
+
+	buffer_t buffer_info_rx_st = (buffer_t)
+	{
+		.data_length = ARR_SIZE,
+		.peri_addr = &USART_reg[UARTx]->DR,
+		.mem_addr = (volatile uint8_t *)UART_recv_buf[UARTx].buf
+	};
 
 	UART_init_state[UARTx] = NOT_INITTED;
 
@@ -65,61 +116,6 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 		switch (UARTx)
 		{
 			case USART1:
-				DMA_direct_param_tx_st = (DMA_direct_param_t)
-				{
-					{
-						.DMAx = DMA2,
-						.stream = Stream_7,
-						.channel = 4
-					},
-					{
-						.double_buffer_en = disable,
-						.peri_data_size = half_word,
-						.mem_data_size = half_word,
-						.peri_mode = fixed,
-						.mem_mode = not_fixed
-					},
-					{
-						.dir = mem_to_peri,
-						.flow_controller = DMA
-					},
-					{
-						.stream_priority = low,
-						.interrupt_en_u8 = (TCIE | DMEIE)
-					}
-				};
-
-				DMA_direct_param_rx_st = (DMA_direct_param_t)
-				{
-					{
-						.DMAx = DMA2,
-						.stream = Stream_5,
-						.channel = 4
-					},
-					{
-						.double_buffer_en = disable,
-						.peri_data_size = half_word,
-						.mem_data_size = half_word,
-						.peri_mode = fixed,
-						.mem_mode = circular
-					},
-					{
-						.dir = peri_to_mem,
-						.flow_controller = DMA
-					},
-					{
-						.stream_priority = medium,
-						.interrupt_en_u8 = (TCIE | DMEIE)
-					}
-				};
-
-				buffer_info_rx_st = (buffer_t)
-				{
-					.data_length = ARR_SIZE,
-					.peri_addr = &USART_reg[UARTx]->DR,
-					.mem_addr = UART_recv_buf[UARTx].buf
-				};
-
 				GPIO_setup(GPIOAEN, 9, AF, AF7, PP, NoP);	// TX
 				GPIO_setup(GPIOAEN, 10, AF, AF7, PP, NoP);	// RX
 
@@ -131,6 +127,14 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 				// Enable Interrupt line
 				NVIC_ISER_setVal(USART1_Interrupt);
 
+				DMA_direct_param_tx_st.Stream_info_st.DMAx = DMA2;
+				DMA_direct_param_tx_st.Stream_info_st.stream = Stream_7;
+				DMA_direct_param_tx_st.Stream_info_st.channel = 4;
+
+				DMA_direct_param_rx_st.Stream_info_st.DMAx = DMA2;
+				DMA_direct_param_rx_st.Stream_info_st.stream = Stream_5;
+				DMA_direct_param_rx_st.Stream_info_st.channel = 4;
+				
 				break;
 			
 			case USART2:
@@ -145,6 +149,14 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 				// Enable Interrupt line
 				NVIC_ISER_setVal(USART2_Interrupt);
 
+				DMA_direct_param_tx_st.Stream_info_st.DMAx = DMA1;
+				DMA_direct_param_tx_st.Stream_info_st.stream = Stream_6;
+				DMA_direct_param_tx_st.Stream_info_st.channel = 4;
+
+				DMA_direct_param_rx_st.Stream_info_st.DMAx = DMA1;
+				DMA_direct_param_rx_st.Stream_info_st.stream = Stream_5;
+				DMA_direct_param_rx_st.Stream_info_st.channel = 4;
+				
 				break;
 
 			case USART3:
@@ -159,6 +171,14 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 				// Enable Interrupt line
 				NVIC_ISER_setVal(USART3_Interrupt);
 
+				DMA_direct_param_tx_st.Stream_info_st.DMAx = DMA1;
+				DMA_direct_param_tx_st.Stream_info_st.stream = Stream_3;
+				DMA_direct_param_tx_st.Stream_info_st.channel = 4;
+
+				DMA_direct_param_rx_st.Stream_info_st.DMAx = DMA1;
+				DMA_direct_param_rx_st.Stream_info_st.stream = Stream_1;
+				DMA_direct_param_rx_st.Stream_info_st.channel = 4;
+				
 				break;
 			
 			case UART4:
@@ -173,6 +193,14 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 				// Enable Interrupt line
 				NVIC_ISER_setVal(UART4_Interrupt);
 
+				DMA_direct_param_tx_st.Stream_info_st.DMAx = DMA1;
+				DMA_direct_param_tx_st.Stream_info_st.stream = Stream_4;
+				DMA_direct_param_tx_st.Stream_info_st.channel = 4;
+
+				DMA_direct_param_rx_st.Stream_info_st.DMAx = DMA1;
+				DMA_direct_param_rx_st.Stream_info_st.stream = Stream_2;
+				DMA_direct_param_rx_st.Stream_info_st.channel = 4;
+				
 				break;
 			
 			case UART5:
@@ -184,6 +212,14 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 				// Enable Interrupt line
 				NVIC_ISER_setVal(UART5_Interrupt);
 
+				DMA_direct_param_tx_st.Stream_info_st.DMAx = DMA1;
+				DMA_direct_param_tx_st.Stream_info_st.stream = Stream_7;
+				DMA_direct_param_tx_st.Stream_info_st.channel = 4;
+
+				DMA_direct_param_rx_st.Stream_info_st.DMAx = DMA1;
+				DMA_direct_param_rx_st.Stream_info_st.stream = Stream_0;
+				DMA_direct_param_rx_st.Stream_info_st.channel = 4;
+				
 				break;
 			
 			case USART6:
@@ -195,6 +231,14 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 				// Enable Interrupt line
 				NVIC_ISER_setVal(USART6_Interrupt);
 
+				DMA_direct_param_tx_st.Stream_info_st.DMAx = DMA2;
+				DMA_direct_param_tx_st.Stream_info_st.stream = Stream_7;
+				DMA_direct_param_tx_st.Stream_info_st.channel = 5;
+
+				DMA_direct_param_rx_st.Stream_info_st.DMAx = DMA2;
+				DMA_direct_param_rx_st.Stream_info_st.stream = Stream_1;
+				DMA_direct_param_rx_st.Stream_info_st.channel = 5;
+				
 				break;
 			
 			default:
@@ -274,6 +318,7 @@ bool UART_init(UARTx_t UARTx, uint32_t baudrate)
 	}
 
 	DMA_transfer(DMA_direct_param_rx_st.Stream_info_st, buffer_info_rx_st);
+	
 	// Enable USART
 	SET_BIT(USART_reg[UARTx]->CR1, 13U);
 	// Enable Transmitter
@@ -303,6 +348,36 @@ bool UART_transmit(UARTx_t UARTx, const uint16_t *buf, uint8_t data_length)
 
 				break;
 
+			case USART2:
+				Stream_info_st.DMAx = DMA1;
+				Stream_info_st.stream = Stream_6;
+
+				break;
+
+			case USART3:
+				Stream_info_st.DMAx = DMA1;
+				Stream_info_st.stream = Stream_3;
+
+				break;
+
+			case UART4:
+				Stream_info_st.DMAx = DMA1;
+				Stream_info_st.stream = Stream_4;
+
+				break;
+
+			case UART5:
+				Stream_info_st.DMAx = DMA1;
+				Stream_info_st.stream = Stream_7;
+
+				break;
+
+			case USART6:
+				Stream_info_st.DMAx = DMA2;
+				Stream_info_st.stream = Stream_7;
+
+				break;
+
 			default:
 				return NOT_OK;
 
@@ -316,7 +391,7 @@ bool UART_transmit(UARTx_t UARTx, const uint16_t *buf, uint8_t data_length)
 			(buffer_t){
 				.data_length = data_length,
 				.peri_addr = &USART_reg[UARTx]->DR,
-				.mem_addr = (uint16_t *)buf
+				.mem_addr = (volatile uint8_t *)buf
 			}
 		);
 	}

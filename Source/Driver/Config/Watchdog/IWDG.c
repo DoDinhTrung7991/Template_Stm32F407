@@ -26,8 +26,8 @@ bool IWDG_init(IWDG_timeout_t timeout)
     while (READ_REG(IWDG_reg->SR, 1UL, 0U))
     {
         if (
-			((SysTick_cnt_u32 < timegap_u32) && (10UL < (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32))))
-			|| ((SysTick_cnt_u32 >= timegap_u32) && (10UL < (SysTick_cnt_u32 - timegap_u32)))
+			((SysTick_cnt_u32 < timegap_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32) - 1)))
+			|| ((SysTick_cnt_u32 >= timegap_u32) && (5UL <= (SysTick_cnt_u32 - timegap_u32)))
 		)
 		{
 			return NOT_OK;

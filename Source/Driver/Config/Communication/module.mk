@@ -4,9 +4,16 @@ Communication_PATH = $(SRC_PATH)Driver/Config/Communication/
 UART_PATH = $(Communication_PATH)$(UART_DIR)
 I2C_PATH = $(Communication_PATH)$(I2C_DIR)
 Communication_OBJ_PATH = $(BUILD_RESULT_PATH_DRIVER)Communication/
-Communication_INC = \
+UART_INC = \
 	-I$(GPIO_PATH) \
 	-I$(QUEUE_PATH) \
+	-I$(DMA_PATH) \
+	-I$(INTERRUPT_PATH) \
+	-I$(STATIC_INIT_PATH) \
+	-I$(REGISTERS_PATH) \
+	-I$(GENERAL_HEADERS_PATH)
+I2C_INC = \
+	-I$(GPIO_PATH) \
 	-I$(DMA_PATH) \
 	-I$(INTERRUPT_PATH) \
 	-I$(STATIC_INIT_PATH) \

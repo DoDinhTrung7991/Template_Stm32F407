@@ -42,10 +42,10 @@ VPATH = $(SRC_PATH)
 
 # Default target
 all: $(BUILD_RESULT_PATH)Hexapod_Robot.elf
-	@echo "Build successful."
+	@printf "Build successful!!!\r\n\r\n"
 
 all_gdb: $(BUILD_RESULT_PATH)Hexapod_Robot_gdb.elf
-	@echo "Debug build successful."
+	@printf "Debug build successful!!!\r\n\r\n"
 
 # Rule to link the final ELF file
 $(BUILD_RESULT_PATH)Hexapod_Robot.elf: $(OBJ_FILES)

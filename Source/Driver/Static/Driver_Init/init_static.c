@@ -9,6 +9,7 @@
 #define VECTKEY_WRITE 0x05FAUL
 #define VECTKEY_READ 0xFA05UL
 
+SYSTICK_t *SYSTICK_reg = (SYSTICK_t *)0xE000E010;
 RCC_t * RCC_reg = (RCC_t *)0x40023800;
 unsigned int SysClock_Freq = HSI_VALUE;
 unsigned int AHB_freq = HSI_VALUE;
@@ -71,10 +72,10 @@ static bool initTick(priConf_t priConf_st)
 		// do nothing
 	}
 
-	WRITE_REG(SYSTICK_reg->RVR, 0xFFFFFFUL, 0U, Systick_LOAD);
+	WRITE_REG(SYSTICK_reg->LOAD, 0xFFFFFFUL, 0U, Systick_LOAD);
 	WRITE_REG(SCB_reg->SHPR3, 0xFFUL, 24U, getPriorityVal(priConf_st.priGroupField, 5, 0));
-	WRITE_REG(SYSTICK_reg->CVR, 0xFFFFFFUL, 0U, 0UL); // clears the counter
-	WRITE_REG(SYSTICK_reg->CSR, 0x7UL, 0U, 7UL); // Enable Interrupt, Enable Counter, Use AHB clock
+	WRITE_REG(SYSTICK_reg->VAL, 0xFFFFFFUL, 0U, 0UL); // clears the counter
+	WRITE_REG(SYSTICK_reg->CTRL, 0x7UL, 0U, 7UL); // Enable Interrupt, Enable Counter, Use AHB clock
 
 	return OK;
 }

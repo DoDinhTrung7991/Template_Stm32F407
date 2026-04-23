@@ -10,4 +10,5 @@ STARTUP_CODE_INC = 	\
 	-I$(GPIO_PATH) \
 	-I$(TIMER_PATH) \
 	-I$(QUEUE_PATH) \
-	-I$(UART_PATH)
+	-I$(UART_PATH) \
+	-I$(I2C_PATH)

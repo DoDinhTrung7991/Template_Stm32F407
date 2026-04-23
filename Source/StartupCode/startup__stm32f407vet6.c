@@ -6,6 +6,7 @@
 #include "EXTI_header.h"
 #include "DMA_header.h"
 #include "UART.h"
+#include "I2C.h"
 #include "Timer.h"
 #include "queue.h"
 
@@ -38,7 +39,7 @@ __attribute__((weak, alias("Default_Handler")))void Debug_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void PendSV_Handler(void);
 void SysTick_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void WWDG_Handler(void);
-__attribute__((weak, alias("Default_Handler")))void PVD_Handler(void);
+__attribute__((weak, alias("Default_Handler")))void PVD_Handler(void); 
 __attribute__((weak, alias("Default_Handler")))void TAMP_STAMP_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void RTC_WKUP_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void FLASH_Handler(void);
@@ -53,7 +54,7 @@ __attribute__((weak, alias("Default_Handler")))void DMA1_Stream1_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void DMA1_Stream2_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void DMA1_Stream3_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void DMA1_Stream4_Handler(void);
-__attribute__((weak, alias("Default_Handler")))void DMA1_Stream5_Handler(void);
+void DMA1_Stream5_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void DMA1_Stream6_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void ADC_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void CAN1_TX_Handler(void);
@@ -68,8 +69,8 @@ __attribute__((weak, alias("Default_Handler")))void TIM1_CC_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM2_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM3_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM4_Handler(void);
-__attribute__((weak, alias("Default_Handler")))void I2C1_EV_Handler(void);
-__attribute__((weak, alias("Default_Handler")))void I2C1_ER_Handler(void);
+void I2C1_EV_Handler(void);
+void I2C1_ER_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void I2C2_EV_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void I2C2_ER_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void SPI1_Handler(void);
@@ -293,7 +294,6 @@ void USART1_Handler(void)
         UART_state_rx[USART1] = UART_STATE_BUSY;
         uint32_t temp = USART_reg[USART1]->SR;
         temp = USART_reg[USART1]->DR;
-        while ((uint8_t)(ARR_SIZE - DMA_reg[DMA2]->S[5].NDTR) == UART_recv_buf[USART1].rear);
 
         if (UART_recv_buf[USART1].isFull)
         {
@@ -321,6 +321,125 @@ void USART1_Handler(void)
         uint32_t temp = USART_reg[USART1]->SR;
         temp = USART_reg[USART1]->DR;
         (void)temp;
+    }
+}
+
+void I2C1_EV_Handler(void)
+{
+    // Check Start bit
+    if (READ_REG(I2C_reg[I2C1]->SR1, 1UL, 0U))
+    {
+        // Write Slave address
+        WRITE_REG(I2C_reg[I2C1]->DR, 0xFFUL, 0U, I2C_addr[I2C1]);
+    }
+
+    // Check Address sent
+    if (READ_REG(I2C_reg[I2C1]->SR1, 1UL, 1U))
+    {
+        // Disable Acknowledge if only write/read 1 byte
+        if (
+            ((1U == READ_REG(DMA_reg[DMA1]->S[5].NDTR, 0xFFFFU, 0U)) && (I2C_STATE_BUSY == I2C_state_rx[I2C1]))
+            || ((1U == READ_REG(DMA_reg[DMA1]->S[7].NDTR, 0xFFFFU, 0U)) && (I2C_STATE_BUSY == I2C_state_tx[I2C1]))
+        )
+        {
+            CLEAR_BIT(I2C_reg[I2C1]->CR1, 10U);
+        }
+
+        // Check TRA bit in the SR2 value we just read
+        if (
+            ((SEND == READ_REG(I2C_reg[I2C1]->SR2, 1UL, 2U)) && (I2C_STATE_READY == I2C_state_tx[I2C1]))
+            || ((RECV == READ_REG(I2C_reg[I2C1]->SR2, 1UL, 2U)) && (I2C_STATE_READY == I2C_state_rx[I2C1]))
+        )
+        {
+            // Reset states to READY so the system can try again
+            I2C_state_tx[I2C1] = I2C_STATE_READY;
+            I2C_state_rx[I2C1] = I2C_STATE_READY;
+        }
+    }
+}
+
+void I2C1_ER_Handler(void)
+{
+    // Check for Bus error (BERR)
+    if (READ_REG(I2C_reg[I2C1]->SR1, 1UL, 8U))
+    {
+        // Clear BERR flag
+        CLEAR_BIT(I2C_reg[I2C1]->SR1, 8U);
+        // Reset states to READY so the system can try again
+        I2C_state_tx[I2C1] = I2C_STATE_READY;
+        I2C_state_rx[I2C1] = I2C_STATE_READY;
+    }
+
+    // Check for Arbitration lost (ARLO)
+    if (READ_REG(I2C_reg[I2C1]->SR1, 1UL, 9U))
+    {
+        // Clear ARLO flag
+        CLEAR_BIT(I2C_reg[I2C1]->SR1, 9U);
+        // Reset states to READY so the system can try again
+        I2C_state_tx[I2C1] = I2C_STATE_READY;
+        I2C_state_rx[I2C1] = I2C_STATE_READY;
+    }
+
+    // Check for Acknowledge Failure (AF)
+    if (READ_REG(I2C_reg[I2C1]->SR1, 1UL, 10U))
+    {
+        // Check bit MSL: Master/slave
+        if (READ_REG(I2C_reg[I2C1]->SR2, 1UL, 0U))
+        {
+            // Send Stop condition
+            SET_BIT(I2C_reg[I2C1]->CR1, 9U);
+        }
+
+        // Clear AF flag
+        CLEAR_BIT(I2C_reg[I2C1]->SR1, 10U);
+        // Reset states to READY so the system can try again
+        I2C_state_tx[I2C1] = I2C_STATE_READY;
+        I2C_state_rx[I2C1] = I2C_STATE_READY;
+    }
+
+    // Check for Overrun/Underrun (OVR)
+    if (READ_REG(I2C_reg[I2C1]->SR1, 1UL, 11U))
+    {
+        // Clear OVR flag
+        CLEAR_BIT(I2C_reg[I2C1]->SR1, 11U);
+    }
+
+    // Check for Timeout or Tlow error (TIMEOUT)
+    if (READ_REG(I2C_reg[I2C1]->SR1, 1UL, 14U))
+    {
+        // Check bit MSL: Master/slave
+        if (READ_REG(I2C_reg[I2C1]->SR2, 1UL, 0U))
+        {
+            // Send Stop condition
+            SET_BIT(I2C_reg[I2C1]->CR1, 9U);
+        }
+        
+        // Clear TIMEOUT flag
+        CLEAR_BIT(I2C_reg[I2C1]->SR1, 14U);
+        // Reset states to READY so the system can try again
+        I2C_state_tx[I2C1] = I2C_STATE_READY;
+        I2C_state_rx[I2C1] = I2C_STATE_READY;
+    }
+}
+
+void DMA1_Stream5_Handler(void)
+{
+    if (READ_REG(DMA_reg[DMA1]->ISR[1], 1UL, 11U))
+    {
+        SET_BIT(DMA_reg[DMA1]->IFCR[1], 11U);
+
+        if (I2C_STATE_BUSY == I2C_state_rx[I2C1])
+        {
+            // Send Stop condition
+            SET_BIT(I2C_reg[I2C1]->CR1, 9U);
+            I2C_state_rx[I2C1] = I2C_STATE_READY;
+            isUpdated_I2C[I2C1] = true;
+        }
+    }
+
+    if (READ_REG(DMA_reg[DMA1]->ISR[1], 1UL, 8U))
+    {
+        SET_BIT(DMA_reg[DMA1]->IFCR[1], 8U);
     }
 }
 
