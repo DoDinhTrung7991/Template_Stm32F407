@@ -28,7 +28,7 @@ static void Enable_DMA_interruptLine(stream_channel_t Stream_info_st);
 
 bool DMA_direct_init(DMA_direct_param_t DMA_direct_param_st)
 {
-    uint32_t timegap_u32;
+    uint32_t timeStart_u32;
 
 	if ((7 < DMA_direct_param_st.Stream_info_st.channel) || (Stream_7 < DMA_direct_param_st.Stream_info_st.stream))
 	{
@@ -51,13 +51,13 @@ bool DMA_direct_init(DMA_direct_param_t DMA_direct_param_st)
 
 	//Reset DMA_SxCR
 	DMA_reg[DMA_direct_param_st.Stream_info_st.DMAx]->S[DMA_direct_param_st.Stream_info_st.stream].CR = 0UL;
-	timegap_u32 = SysTick_cnt_u32;
+	timeStart_u32 = SysTick_cnt_u32;
 
 	while (READ_REG(DMA_reg[DMA_direct_param_st.Stream_info_st.DMAx]->S[DMA_direct_param_st.Stream_info_st.stream].CR, 1UL, 0U))
 	{
 		if (
-			((SysTick_cnt_u32 < timegap_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32) - 1)))
-			|| ((SysTick_cnt_u32 >= timegap_u32) && (5UL <= (SysTick_cnt_u32 - timegap_u32)))
+			((SysTick_cnt_u32 < timeStart_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timeStart_u32) + 1)))
+			|| ((SysTick_cnt_u32 >= timeStart_u32) && (5UL <= (SysTick_cnt_u32 - timeStart_u32)))
 		)
 		{
 			return NOT_OK;
@@ -163,7 +163,7 @@ bool DMA_direct_init(DMA_direct_param_t DMA_direct_param_st)
 
 bool DMA_FIFO_init(DMA_FIFO_param_t DMA_FIFO_param_st)
 {
-    uint32_t timegap_u32;
+    uint32_t timeStart_u32;
 
 	if ((7 < DMA_FIFO_param_st.Stream_info_st.channel) || (Stream_7 < DMA_FIFO_param_st.Stream_info_st.stream))
 	{
@@ -186,13 +186,13 @@ bool DMA_FIFO_init(DMA_FIFO_param_t DMA_FIFO_param_st)
 
 	//Reset DMA_SxCR
 	DMA_reg[DMA_FIFO_param_st.Stream_info_st.DMAx]->S[DMA_FIFO_param_st.Stream_info_st.stream].CR = 0UL;
-	timegap_u32 = SysTick_cnt_u32;
+	timeStart_u32 = SysTick_cnt_u32;
 
 	while (READ_REG(DMA_reg[DMA_FIFO_param_st.Stream_info_st.DMAx]->S[DMA_FIFO_param_st.Stream_info_st.stream].CR, 1UL, 0U))
 	{
 		if (
-			((SysTick_cnt_u32 < timegap_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32) - 1)))
-			|| ((SysTick_cnt_u32 >= timegap_u32) && (5UL <= (SysTick_cnt_u32 - timegap_u32)))
+			((SysTick_cnt_u32 < timeStart_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timeStart_u32) + 1)))
+			|| ((SysTick_cnt_u32 >= timeStart_u32) && (5UL <= (SysTick_cnt_u32 - timeStart_u32)))
 		)
 		{
 			return NOT_OK;
@@ -315,17 +315,17 @@ bool DMA_FIFO_init(DMA_FIFO_param_t DMA_FIFO_param_st)
 
 void DMA_transfer(stream_channel_t Stream_info_st, buffer_t buffer_info_st)
 {
-	uint32_t timegap_u32;
+	uint32_t timeStart_u32;
 
 	// Disable DMA Stream
 	CLEAR_BIT(DMA_reg[Stream_info_st.DMAx]->S[Stream_info_st.stream].CR, 0U);
-	timegap_u32 = SysTick_cnt_u32;
+	timeStart_u32 = SysTick_cnt_u32;
 
 	while (READ_REG(DMA_reg[Stream_info_st.DMAx]->S[Stream_info_st.stream].CR, 1UL, 0U))
 	{
 		if (
-			((SysTick_cnt_u32 < timegap_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32) - 1)))
-			|| ((SysTick_cnt_u32 >= timegap_u32) && (5UL <= (SysTick_cnt_u32 - timegap_u32)))
+			((SysTick_cnt_u32 < timeStart_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timeStart_u32) + 1)))
+			|| ((SysTick_cnt_u32 >= timeStart_u32) && (5UL <= (SysTick_cnt_u32 - timeStart_u32)))
 		)
 		{
 			return;

@@ -5,7 +5,28 @@
 #include "Interrupt.h"
 #include "GPIO.h"
 #include "DMA.h"
+#include "delay_us.h"
 #include <string.h>
+
+typedef struct
+{
+	GPIO_ENABLE_t GPIOx_en;
+	uint8_t pos_u8;
+} GPIOx_posY_t;
+
+GPIOx_posY_t GPIO_SCL_st[3] =
+{
+	{GPIOBEN, 8},
+	{GPIOBEN, 10},
+	{GPIOAEN, 8}
+};
+
+GPIOx_posY_t GPIO_SDA_st[3] =
+{
+	{GPIOBEN, 9},
+	{GPIOBEN, 11},
+	{GPIOCEN, 9}
+};
 
 I2C_t *I2C_reg[3] = 
 {
@@ -49,16 +70,19 @@ volatile uint8_t isUpdated_I2C[3] =
 	false
 };
 
+volatile uint8_t I2C_length[3];
 volatile uint8_t I2C_addr[3];
+
+static bool I2C_bus_clean(I2Cx_t I2Cx_en);
 
 bool I2C_init(I2Cx_t I2Cx_en)
 {
 	I2C_init_state[I2Cx_en] = NOT_INITTED;
-	static bool is_DMA_Init_done[3] = {false, false, false};
+	static bool is_Init_done_once[3] = {false, false, false};
 
     if ((I2C_STATE_READY == I2C_state_tx[I2Cx_en]) && (I2C_STATE_READY == I2C_state_rx[I2Cx_en]))
     {
-		if (false == is_DMA_Init_done[I2Cx_en])
+		if (false == is_Init_done_once[I2Cx_en])
 		{
         	DMA_direct_param_t DMA_direct_param_tx_st = (DMA_direct_param_t)
 			{
@@ -96,7 +120,7 @@ bool I2C_init(I2Cx_t I2Cx_en)
 					.peri_data_size = byte,
 					.mem_data_size = byte,
 					.peri_mode = fixed,
-					.mem_mode = circular
+					.mem_mode = not_fixed
 				},
 				{
 					.dir = peri_to_mem,
@@ -113,13 +137,6 @@ bool I2C_init(I2Cx_t I2Cx_en)
         	    case I2C1:
         	        // Enable I2C clock
         	        SET_BIT(RCC_reg->APB1ENR, 21U);
-        	        // Setup GPIO for I2C
-        	        GPIO_setup(GPIOBEN, 8, AF, AF4, OD, PU);	// SCL
-	    			GPIO_setup(GPIOBEN, 9, AF, AF4, OD, PU);	// SDA
-        	        /*
-        	        GPIO_setup(GPIOBEN, 6, AF, AF4, OD, PU);	// SCL
-	    			GPIO_setup(GPIOBEN, 7, AF, AF4, OD, PU);	// SDA
-        	        */
         	        // Enable ISR for I2C
         	        NVIC_ISER_setVal(I2C1_EV);
         	        NVIC_ISER_setVal(I2C1_ER);
@@ -137,9 +154,6 @@ bool I2C_init(I2Cx_t I2Cx_en)
         	    case I2C2:
         	        // Enable I2C clock
         	        SET_BIT(RCC_reg->APB1ENR, 22U);
-        	        // Setup GPIO for I2C
-        	        GPIO_setup(GPIOBEN, 10, AF, AF4, OD, PU);	// SCL
-	    			GPIO_setup(GPIOBEN, 11, AF, AF4, OD, PU);	// SDA
         	        // Enable ISR for I2C
         	        NVIC_ISER_setVal(I2C2_EV);
         	        NVIC_ISER_setVal(I2C2_ER);
@@ -157,9 +171,6 @@ bool I2C_init(I2Cx_t I2Cx_en)
         	    case I2C3:
         	        // Enable I2C clock
         	        SET_BIT(RCC_reg->APB1ENR, 23U);
-        	        // Setup GPIO for I2C
-        	        GPIO_setup(GPIOAEN, 8, AF, AF4, OD, PU);	// SCL
-	    			GPIO_setup(GPIOCEN, 9, AF, AF4, OD, PU);	// SDA
         	        // Enable ISR for I2C
         	        NVIC_ISER_setVal(I2C3_EV);
         	        NVIC_ISER_setVal(I2C3_ER);
@@ -184,32 +195,18 @@ bool I2C_init(I2Cx_t I2Cx_en)
 				return NOT_OK;
 			}
 
-			is_DMA_Init_done[I2Cx_en] = true;
+			is_Init_done_once[I2Cx_en] = true;
 		}
+
+        // Setup GPIO for I2C
+        GPIO_setup(GPIO_SCL_st[I2Cx_en].GPIOx_en, GPIO_SCL_st[I2Cx_en].pos_u8, AF, AF4, OD, PU);	// SCL
+	    GPIO_setup(GPIO_SDA_st[I2Cx_en].GPIOx_en, GPIO_SDA_st[I2Cx_en].pos_u8, AF, AF4, OD, PU);	// SDA
 
 		// Check Bus busy
 		if (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 1U))
 		{
-			uint32_t timegap_u32;
-
-			// Software reset
-			SET_BIT(I2C_reg[I2Cx_en]->CR1, 15U);
-			timegap_u32 = SysTick_cnt_u32;
-
-			// Wait for Bus ready
-			while (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 1U))
-			{
-				if (
-					((SysTick_cnt_u32 < timegap_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32) - 1)))
-					|| ((SysTick_cnt_u32 >= timegap_u32) && (5UL <= (SysTick_cnt_u32 - timegap_u32)))
-				)
-				{
-					return NOT_OK;
-				}
-			}
-
-			// clear reset bit
-			CLEAR_BIT(I2C_reg[I2Cx_en]->CR1, 15U);
+			I2C_bus_clean(I2Cx_en);
+			return NOT_OK;
 		}
 
 		uint32_t I2C_freq_u32 = APB1_freq / 1000000;
@@ -217,8 +214,6 @@ bool I2C_init(I2Cx_t I2Cx_en)
         // Setting for I2C
         // Peripheral disable
         CLEAR_BIT(I2C_reg[I2Cx_en]->CR1, 0U);
-        // DMA requests enable
-        SET_BIT(I2C_reg[I2Cx_en]->CR2, 11U);
         // Enable Event interrupt enable
         SET_BIT(I2C_reg[I2Cx_en]->CR2, 9U);
         // Enable Error interrupt enable
@@ -228,11 +223,9 @@ bool I2C_init(I2Cx_t I2Cx_en)
         // I2C master mode selection: Sm
         CLEAR_BIT(I2C_reg[I2Cx_en]->CCR, 15U);
         // Clock control register in Fm/Sm mode (Master mode)
-        WRITE_REG(I2C_reg[I2Cx_en]->CCR, 0xFFFUL, 0U, (I2C_freq_u32 * 5U)); // CCR = APB1 / (2 * 100kHz)
+        WRITE_REG(I2C_reg[I2Cx_en]->CCR, 0xFFFUL, 0U, (APB1_freq / (2 * 100000U)));
         // Maximum rise time in Fm/Sm mode (Master mode): 1000ns
         WRITE_REG(I2C_reg[I2Cx_en]->TRISE, 0x3FUL, 0U, (I2C_freq_u32 + 1));
-        // Acknowledge enable
-        SET_BIT(I2C_reg[I2Cx_en]->CR1, 10U);
         // Peripheral enable
         SET_BIT(I2C_reg[I2Cx_en]->CR1, 0U);
 		I2C_init_state[I2Cx_en] = INITTED;
@@ -245,107 +238,10 @@ bool I2C_init(I2Cx_t I2Cx_en)
     return OK;
 }
 
-bool I2C_master_recv(I2Cx_t I2Cx_en, uint8_t addr_u8, uint32_t length_u32)
-{
-	if (
-		(NOT_INITTED == I2C_init_state[I2Cx_en])
-		|| (I2C_STATE_BUSY == I2C_state_tx[I2Cx_en])
-		|| (I2C_STATE_BUSY == I2C_state_rx[I2Cx_en])
-		|| (length_u32 > ARR_SIZE)
-	)
-	{
-		return NOT_OK;
-	}
-	else
-	{
-		// Check Bus busy
-		if (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 1U))
-		{
-			uint32_t timegap_u32;
-
-			// Software reset
-			SET_BIT(I2C_reg[I2Cx_en]->CR1, 15U);
-			timegap_u32 = SysTick_cnt_u32;
-
-			// Wait for Bus ready
-			while (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 1U))
-			{
-				if (
-					((SysTick_cnt_u32 < timegap_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32) - 1)))
-					|| ((SysTick_cnt_u32 >= timegap_u32) && (5UL <= (SysTick_cnt_u32 - timegap_u32)))
-				)
-				{
-					return NOT_OK;
-				}
-			}
-
-			// clear reset bit
-			CLEAR_BIT(I2C_reg[I2Cx_en]->CR1, 15U);
-
-			// Setup I2C again
-			if (NOT_OK == I2C_init(I2Cx_en))
-			{
-				return NOT_OK;
-			}
-		}
-
-		buffer_t buffer_info_rx_st = (buffer_t)
-		{
-			.data_length = length_u32,
-			.peri_addr = &I2C_reg[I2Cx_en]->DR,
-			.mem_addr = (volatile uint8_t *)I2C_recv_buf[I2Cx_en]
-		};
-
-		stream_channel_t Stream_info_st;
-
-		switch (I2Cx_en)
-        {
-            case I2C1:
-                Stream_info_st.DMAx = DMA1;
-				Stream_info_st.stream = Stream_5;
-				Stream_info_st.channel = 1;
-
-                break;
-
-            case I2C2:
-                Stream_info_st.DMAx = DMA1;
-				Stream_info_st.stream = Stream_3;
-				Stream_info_st.channel = 7;
-
-                break;
-
-            case I2C3:
-                Stream_info_st.DMAx = DMA1;
-				Stream_info_st.stream = Stream_2;
-				Stream_info_st.channel = 3;
-
-                break;
-
-            default:
-                return NOT_OK;
-        }
-
-		isUpdated_I2C[I2Cx_en] = false;
-		I2C_state_rx[I2Cx_en] = I2C_STATE_BUSY;
-		// Reset buffer BEFORE starting DMA to avoid race conditions
-	    memset((void*)I2C_recv_buf[I2Cx_en], 0, ARR_SIZE * sizeof(*I2C_recv_buf[I2Cx_en]));
-		I2C_addr[I2Cx_en] = ((addr_u8 << 1U) | 1U);
-		// Setup DMA
-		DMA_transfer(Stream_info_st, buffer_info_rx_st);
-		// Ensure ACK is enabled before starting
-		SET_BIT(I2C_reg[I2Cx_en]->CR1, 10U);
-		// Generate START Condition
-		SET_BIT(I2C_reg[I2Cx_en]->CR1, 8U);
-	}
-
-	return OK;
-}
-
 bool I2C_master_send(I2Cx_t I2Cx_en, uint8_t addr_u8, const uint8_t *buf, uint32_t length_u32)
 {
 	if (
-		(NOT_INITTED == I2C_init_state[I2Cx_en])
-		|| (I2C_STATE_BUSY == I2C_state_tx[I2Cx_en])
+		(I2C_STATE_BUSY == I2C_state_tx[I2Cx_en])
 		|| (I2C_STATE_BUSY == I2C_state_rx[I2Cx_en])
 		|| (NULL == buf)
 		|| (0 == length_u32)
@@ -353,37 +249,39 @@ bool I2C_master_send(I2Cx_t I2Cx_en, uint8_t addr_u8, const uint8_t *buf, uint32
 	{
 		return NOT_OK;
 	}
+	else if (NOT_INITTED == I2C_init_state[I2Cx_en])
+	{
+		if (NOT_OK == I2C_init(I2Cx_en))
+		{
+			return NOT_OK;
+		}
+	}
 	else
 	{
+		// Check Master/slave (MSL)
+		if (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 0U)) // Previous master send/receive has not done yet
+		{
+			uint32_t timeStart_u32 = SysTick_cnt_u32;
+
+			// Wait for master mode done
+			while (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 0U))
+			{
+				// Timeout is between 10ms and 20ms
+				if (
+					((SysTick_cnt_u32 < timeStart_u32) && (2UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timeStart_u32) + 1)))
+					|| ((SysTick_cnt_u32 >= timeStart_u32) && (2UL <= (SysTick_cnt_u32 - timeStart_u32)))
+				)
+				{
+					I2C_bus_clean(I2Cx_en);
+				}
+			}
+		}
+
 		// Check Bus busy
 		if (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 1U))
 		{
-			uint32_t timegap_u32;
-
-			// Software reset
-			SET_BIT(I2C_reg[I2Cx_en]->CR1, 15U);
-			timegap_u32 = SysTick_cnt_u32;
-
-			// Wait for Bus ready
-			while (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 1U))
-			{
-				if (
-					((SysTick_cnt_u32 < timegap_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32) - 1)))
-					|| ((SysTick_cnt_u32 >= timegap_u32) && (5UL <= (SysTick_cnt_u32 - timegap_u32)))
-				)
-				{
-					return NOT_OK;
-				}
-			}
-
-			// clear reset bit
-			CLEAR_BIT(I2C_reg[I2Cx_en]->CR1, 15U);
-
-			// Setup I2C again
-			if (NOT_OK == I2C_init(I2Cx_en))
-			{
-				return NOT_OK;
-			}
+			I2C_bus_clean(I2Cx_en);
+			return NOT_OK;
 		}
 
 		buffer_t buffer_info_tx_st = (buffer_t)
@@ -426,8 +324,176 @@ bool I2C_master_send(I2Cx_t I2Cx_en, uint8_t addr_u8, const uint8_t *buf, uint32
 		DMA_transfer(Stream_info_st, buffer_info_tx_st);
 		// Ensure ACK is enabled (though primarily needed for RX, it's good practice)
 		SET_BIT(I2C_reg[I2Cx_en]->CR1, 10U);
-		// Generate START Condition
+		// DMA requests enable
+        SET_BIT(I2C_reg[I2Cx_en]->CR2, 11U);
+        // Generate START Condition
 		SET_BIT(I2C_reg[I2Cx_en]->CR1, 8U);
 	}
+
+	return OK;
+}
+
+bool I2C_master_recv(I2Cx_t I2Cx_en, uint8_t addr_u8, uint32_t length_u32)
+{
+	if (
+		(I2C_STATE_BUSY == I2C_state_tx[I2Cx_en])
+		|| (I2C_STATE_BUSY == I2C_state_rx[I2Cx_en])
+		|| (length_u32 > ARR_SIZE)
+	)
+	{
+		return NOT_OK;
+	}
+	else if (NOT_INITTED == I2C_init_state[I2Cx_en])
+	{
+		if (NOT_OK == I2C_init(I2Cx_en))
+		{
+			return NOT_OK;
+		}
+	}
+	else
+	{
+		// Check Master/slave (MSL)
+		if (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 0U)) // Previous master send/receive has not done yet
+		{
+			uint32_t timeStart_u32 = SysTick_cnt_u32;
+
+			// Wait for master mode done
+			while (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 0U))
+			{
+				// Timeout is between 10ms and 20ms
+				if (
+					((SysTick_cnt_u32 < timeStart_u32) && (2UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timeStart_u32) + 1)))
+					|| ((SysTick_cnt_u32 >= timeStart_u32) && (2UL <= (SysTick_cnt_u32 - timeStart_u32)))
+				)
+				{
+					I2C_bus_clean(I2Cx_en);
+				}
+			}
+		}
+
+		// Check Bus busy
+		if (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 1U))
+		{
+			I2C_bus_clean(I2Cx_en);
+			return NOT_OK;
+		}
+
+		buffer_t buffer_info_rx_st = (buffer_t)
+		{
+			.data_length = length_u32 - 2,
+			.peri_addr = &I2C_reg[I2Cx_en]->DR,
+			.mem_addr = (volatile uint8_t *)I2C_recv_buf[I2Cx_en]
+		};
+
+		stream_channel_t Stream_info_st;
+
+		switch (I2Cx_en)
+        {
+            case I2C1:
+                Stream_info_st.DMAx = DMA1;
+				Stream_info_st.stream = Stream_5;
+				Stream_info_st.channel = 1;
+
+                break;
+
+            case I2C2:
+                Stream_info_st.DMAx = DMA1;
+				Stream_info_st.stream = Stream_3;
+				Stream_info_st.channel = 7;
+
+                break;
+
+            case I2C3:
+                Stream_info_st.DMAx = DMA1;
+				Stream_info_st.stream = Stream_2;
+				Stream_info_st.channel = 3;
+
+                break;
+
+            default:
+                return NOT_OK;
+        }
+
+		isUpdated_I2C[I2Cx_en] = false;
+		I2C_state_rx[I2Cx_en] = I2C_STATE_BUSY;
+		I2C_length[I2Cx_en] = length_u32;
+		// Clear Buffer interrupt enable
+		CLEAR_BIT(I2C_reg[I2Cx_en]->CR2, 10U);
+		// Reset buffer BEFORE starting DMA to avoid race conditions
+	    memset((void*)I2C_recv_buf[I2Cx_en], 0, ARR_SIZE * sizeof(*I2C_recv_buf[I2Cx_en]));
+		// Write address: LSB = 1 for receiver
+		I2C_addr[I2Cx_en] = ((addr_u8 << 1U) | 1U);
+		// Setup DMA
+		DMA_transfer(Stream_info_st, buffer_info_rx_st);
+		// Ensure ACK is enabled before starting
+		SET_BIT(I2C_reg[I2Cx_en]->CR1, 10U);
+		// DMA requests enable
+        SET_BIT(I2C_reg[I2Cx_en]->CR2, 11U);
+        // Generate START Condition
+		SET_BIT(I2C_reg[I2Cx_en]->CR1, 8U);
+	}
+
+	return OK;
+}
+
+static bool I2C_bus_clean(I2Cx_t I2Cx_en)
+{
+	if (I2Cx_en > I2C3)
+	{
+		return NOT_OK;
+	}
+	else
+	{
+		uint32_t timeStart_u32 = SysTick_cnt_u32;
+
+		// Wait for Bus ready (BUSY)
+		while (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 1U))
+		{
+			// Timeout is between 10ms and 20ms
+			if (
+				((SysTick_cnt_u32 < timeStart_u32) && (2UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timeStart_u32) + 1)))
+				|| ((SysTick_cnt_u32 >= timeStart_u32) && (2UL <= (SysTick_cnt_u32 - timeStart_u32)))
+			)
+			{
+				// Setup PIN SCL and SDA as GP mode
+    	    	GPIO_setup(GPIO_SCL_st[I2Cx_en].GPIOx_en, GPIO_SCL_st[I2Cx_en].pos_u8, GP_OUT, AF4, OD, NoP);	// SCL
+		    	GPIO_setup(GPIO_SDA_st[I2Cx_en].GPIOx_en, GPIO_SDA_st[I2Cx_en].pos_u8, IN, AF4, OD, PU);	// SDA
+			
+				for (uint8_t i = 0; i < 9; i++)
+				{
+					GPIO_OUT_setVal(GPIO_SCL_st[I2Cx_en].GPIOx_en, GPIO_SCL_st[I2Cx_en].pos_u8, 0);
+					delay_us(5);
+    				GPIO_OUT_setVal(GPIO_SCL_st[I2Cx_en].GPIOx_en, GPIO_SCL_st[I2Cx_en].pos_u8, 1);
+					delay_us(5);
+
+					// Check Bus ready
+					if (1 == GPIO_IN_getVal(GPIO_SDA_st[I2Cx_en].GPIOx_en, GPIO_SDA_st[I2Cx_en].pos_u8))
+					{
+						break;
+					}
+				}
+
+				// Check if Bus is still busy
+				if (READ_REG(I2C_reg[I2Cx_en]->SR2, 1UL, 1U))
+				{
+					
+					// Software reset
+					SET_BIT(I2C_reg[I2Cx_en]->CR1, 15U);
+					// clear reset bit
+					CLEAR_BIT(I2C_reg[I2Cx_en]->CR1, 15U);
+					// Require manual I2C init
+					I2C_init_state[I2Cx_en] = NOT_INITTED;
+					return NOT_OK;
+				}
+
+        		// Setup GPIO for I2C
+        		GPIO_setup(GPIO_SCL_st[I2Cx_en].GPIOx_en, GPIO_SCL_st[I2Cx_en].pos_u8, AF, AF4, OD, PU);	// SCL
+	    		GPIO_setup(GPIO_SDA_st[I2Cx_en].GPIOx_en, GPIO_SDA_st[I2Cx_en].pos_u8, AF, AF4, OD, PU);	// SDA
+
+				break;
+			}
+		}
+	}
+
 	return OK;
 }

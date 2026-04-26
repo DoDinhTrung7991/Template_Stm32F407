@@ -27,6 +27,7 @@ extern volatile bool I2C_init_state[3];
 extern volatile uint8_t I2C_recv_buf[3][ARR_SIZE];
 extern volatile bool I2C_state_tx[3];
 extern volatile bool I2C_state_rx[3];
+extern volatile uint8_t I2C_length[3];
 extern volatile uint8_t isUpdated_I2C[3];
 extern volatile uint8_t I2C_addr[3];
 

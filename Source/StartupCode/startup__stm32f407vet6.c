@@ -85,7 +85,7 @@ __attribute__((weak, alias("Default_Handler")))void TIM8_BRK_TIM12_Handler(void)
 __attribute__((weak, alias("Default_Handler")))void TIM8_UP_TIM13_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM8_TRG_COM_TIM14_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM8_CC_Handler(void);
-__attribute__((weak, alias("Default_Handler")))void DMA1_Stream7_Handler(void);
+void DMA1_Stream7_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void FSMC_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void SDIO_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM5_Handler(void);
@@ -326,11 +326,15 @@ void USART1_Handler(void)
 
 void I2C1_EV_Handler(void)
 {
+    static bool isLastByte_I2C[2];
+
     // Check Start bit
     if (READ_REG(I2C_reg[I2C1]->SR1, 1UL, 0U))
     {
         // Write Slave address
         WRITE_REG(I2C_reg[I2C1]->DR, 0xFFUL, 0U, I2C_addr[I2C1]);
+        isLastByte_I2C[0] = true;
+        isLastByte_I2C[1] = false;
     }
 
     // Check Address sent
@@ -342,6 +346,7 @@ void I2C1_EV_Handler(void)
             || ((1U == READ_REG(DMA_reg[DMA1]->S[7].NDTR, 0xFFFFU, 0U)) && (I2C_STATE_BUSY == I2C_state_tx[I2C1]))
         )
         {
+            // Clear ACK
             CLEAR_BIT(I2C_reg[I2C1]->CR1, 10U);
         }
 
@@ -354,6 +359,39 @@ void I2C1_EV_Handler(void)
             // Reset states to READY so the system can try again
             I2C_state_tx[I2C1] = I2C_STATE_READY;
             I2C_state_rx[I2C1] = I2C_STATE_READY;
+        }
+    }
+
+    // Check RxNE
+    if (READ_REG(I2C_reg[I2C1]->SR1, 1UL, 6U))
+    {
+        if ((true == isLastByte_I2C[0]) && (false == isLastByte_I2C[1]))
+        {
+            I2C_recv_buf[I2C1][I2C_length[I2C1] - 2] = READ_REG(I2C_reg[I2C1]->DR, 0xFFU, 0U);
+            isLastByte_I2C[0] = false;
+            isLastByte_I2C[1] = true;
+            // Clear ACK
+            CLEAR_BIT(I2C_reg[I2C1]->CR1, 10U);
+            // Send Stop condition
+            SET_BIT(I2C_reg[I2C1]->CR1, 9U);
+        }
+
+        if ((false == isLastByte_I2C[0]) && (true == isLastByte_I2C[1]))
+        {
+            I2C_recv_buf[I2C1][I2C_length[I2C1] - 1] = READ_REG(I2C_reg[I2C1]->DR, 0xFFU, 0U);
+            I2C_state_rx[I2C1] = I2C_STATE_READY;
+            isUpdated_I2C[I2C1] = true;
+        }
+    }
+
+    // Check BTF
+    if (READ_REG(I2C_reg[I2C1]->SR1, 1UL, 2U))
+    {
+        if (I2C_STATE_BUSY == I2C_state_tx[I2C1])
+        {
+            // Send Stop condition
+            SET_BIT(I2C_reg[I2C1]->CR1, 9U);
+            I2C_state_tx[I2C1] = I2C_STATE_READY;
         }
     }
 }
@@ -430,16 +468,35 @@ void DMA1_Stream5_Handler(void)
 
         if (I2C_STATE_BUSY == I2C_state_rx[I2C1])
         {
-            // Send Stop condition
-            SET_BIT(I2C_reg[I2C1]->CR1, 9U);
-            I2C_state_rx[I2C1] = I2C_STATE_READY;
-            isUpdated_I2C[I2C1] = true;
+            // Set Buffer interrupt enable
+            SET_BIT(I2C_reg[I2C1]->CR2, 10U);
+            // DMA requests disable
+            CLEAR_BIT(I2C_reg[I2C1]->CR2, 11U);
         }
     }
 
     if (READ_REG(DMA_reg[DMA1]->ISR[1], 1UL, 8U))
     {
         SET_BIT(DMA_reg[DMA1]->IFCR[1], 8U);
+    }
+}
+
+void DMA1_Stream7_Handler(void)
+{
+    if (READ_REG(DMA_reg[DMA1]->ISR[1], 1UL, 27U))
+    {
+        SET_BIT(DMA_reg[DMA1]->IFCR[1], 27U);
+
+        if (I2C_STATE_BUSY == I2C_state_tx[I2C1])
+        {
+            // DMA requests disable
+            CLEAR_BIT(I2C_reg[I2C1]->CR2, 11U);
+        }
+    }
+
+    if (READ_REG(DMA_reg[DMA1]->ISR[1], 1UL, 24U))
+    {
+        SET_BIT(DMA_reg[DMA1]->IFCR[1], 24U);
     }
 }
 

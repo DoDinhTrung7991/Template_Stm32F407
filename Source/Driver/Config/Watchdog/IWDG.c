@@ -11,7 +11,7 @@ IWDG_t *IWDG_reg = (IWDG_t *)0x40003000;
 
 bool IWDG_init(IWDG_timeout_t timeout)
 {
-    uint32_t timegap_u32;
+    uint32_t timeStart_u32;
 
     // Start IWDG
     WRITE_REG(IWDG_reg->KR, 0xFFFFUL, 0U, WATCHDOG_START);
@@ -20,14 +20,14 @@ bool IWDG_init(IWDG_timeout_t timeout)
     // Setting Prescaler
     WRITE_REG(IWDG_reg->PR, 0x7UL, 0U, timeout);
 
-    timegap_u32 = SysTick_cnt_u32;
+    timeStart_u32 = SysTick_cnt_u32;
 
     // Waiting for Prescaler update completed.
     while (READ_REG(IWDG_reg->SR, 1UL, 0U))
     {
         if (
-			((SysTick_cnt_u32 < timegap_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timegap_u32) - 1)))
-			|| ((SysTick_cnt_u32 >= timegap_u32) && (5UL <= (SysTick_cnt_u32 - timegap_u32)))
+			((SysTick_cnt_u32 < timeStart_u32) && (5UL <= (SysTick_cnt_u32 + (0xFFFFFFFFUL - timeStart_u32) + 1)))
+			|| ((SysTick_cnt_u32 >= timeStart_u32) && (5UL <= (SysTick_cnt_u32 - timeStart_u32)))
 		)
 		{
 			return NOT_OK;
