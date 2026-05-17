@@ -3,10 +3,7 @@
 
 #include "stdUtility.h"
 #include "bit_operator.h"
-#include "TIM1_header.h"
-#include "TIM2_header.h"
-#include "TIM9_header.h"
-#include "TIM10_header.h"
+#include "TIM_header.h"
 
 /*Macro - Start*/
 
@@ -55,8 +52,11 @@ extern uint8_t TIMxFrequency[MAX_TIMER_NUMBER];
 
 /*Function - Start*/
 
-bool Timer_init(TIMx_t TIMx_en, uint8_t frequency);
-bool PWM_init(TIMx_t TIMx_en, TIM_Channel_t Channel);
+// Init Timer basic
+bool Timer_init(TIMx_t TIMx_en, uint8_t frequency_u8, bool is_Interrupt_b);
+
+// PWM
+bool PWM_init(TIMx_t TIMx_en, TIM_Channel_t Channel, uint8_t frequency_u8);
 bool PWM_Generation(TIMx_t TIMx_en, TIM_Channel_t Channel, uint8_t activePercent_u8_int, uint8_t activePercent_floating_point);
 
 /*Function - End*/

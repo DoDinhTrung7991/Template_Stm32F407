@@ -3,474 +3,146 @@
 
 /*Variable - Start*/
 
-bool is_PWMinit[MAX_TIMER_NUMBER][MAX_CHANNEL_NUMBER] = { 0 };
+static bool is_PWMinit[MAX_TIMER_NUMBER][MAX_CHANNEL_NUMBER] = { 0 };
+const unsigned int OCxM_bit[2] = {4U, 12U};
+const unsigned int OCxPE_bit[2] = {3U, 11U};
+const unsigned int OCxFE_bit[2] = {2U, 10U};
 
 /*Variable - End*/
 
-bool PWM_init(TIMx_t TIMx_en, TIM_Channel_t Channel)
+bool PWM_init(TIMx_t TIMx_en, TIM_Channel_t Channel, uint8_t frequency_u8)
 {
-	bool ReturnVal = OK;
+	is_PWMinit[TIMx_en][Channel] = false;
+
+	if (OK != (Timer_init(TIMx_en, frequency_u8, false))
+		||	(MAX_TIMER_NUMBER < TIMx_en)
+		|| 	(TIM6 == TIMx_en)
+		|| 	(TIM7 == TIMx_en)
+		|| 	(
+				((TIM9 == TIMx_en) || (TIM12 == TIMx_en))
+				&& (CHANN_2 < Channel)
+			)
+		|| 	(
+				(
+					(TIM10 == TIMx_en)
+					|| (TIM11 == TIMx_en)
+					|| (TIM13 == TIMx_en)
+					|| (TIM14 == TIMx_en)
+				)
+				&& (CHANN_1 < Channel)
+			)
+	)
+	{
+		return NOT_OK;
+	}
 
 	switch (TIMx_en)
 	{
 		case TIM1:
-			if (true == is_timerInit[TIM1])
-			{
-				SET_BIT(TIM1_reg->EGR, 0U);
-				WRITE_REG(TIM1_reg->CR2, 7UL, 4U, 0UL);
-				CLEAR_BIT(TIM1_reg->SMCR, 7U);
-				switch (Channel)
-				{
-					case CHANN_1:
-						CLEAR_BIT(TIM1_reg->CCER, 0U);
-						WRITE_REG(TIM1_reg->CCMR1, 7UL, 4U, 6UL);
-						WRITE_REG(TIM1_reg->CCMR1, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM1_reg->CCER, 1U);
-						TIM1_reg->CCR1 = (unsigned short)0;
-						SET_BIT(TIM1_reg->CCMR1, 3U);
-						SET_BIT(TIM1_reg->CCMR1, 2U);
-						GPIO_setup(GPIOAEN, 8U, AF, AF1, PP, NoP);
-						SET_BIT(TIM1_reg->CCER, 0U);
-						WRITE_REG(TIM1_reg->SMCR, 7UL, 0U, 0UL);
-						SET_BIT(TIM1_reg->BDTR, 15U);
-						is_PWMinit[TIM1][CHANN_1] = true;
-						break;
-					case CHANN_2:
-						CLEAR_BIT(TIM1_reg->CCER, 4U);
-						WRITE_REG(TIM1_reg->CCMR1, 7UL, 12U, 6UL);
-						WRITE_REG(TIM1_reg->CCMR1, 3UL, 8U, 0UL);
-						CLEAR_BIT(TIM1_reg->CCER, 5U);
-						TIM1_reg->CCR2 = (unsigned short)0;
-						SET_BIT(TIM1_reg->CCMR1, 11U);
-						SET_BIT(TIM1_reg->CCMR1, 10U);
-						GPIO_setup(GPIOAEN, 9U, AF, AF1, PP, NoP);
-						SET_BIT(TIM1_reg->CCER, 4U);
-						WRITE_REG(TIM1_reg->SMCR, 7UL, 0U, 0UL);
-						SET_BIT(TIM1_reg->BDTR, 15U);
-						is_PWMinit[TIM1][CHANN_2] = true;
-						break;
-					case CHANN_3:
-						CLEAR_BIT(TIM1_reg->CCER, 8U);
-						WRITE_REG(TIM1_reg->CCMR2, 7UL, 4U, 6UL);
-						WRITE_REG(TIM1_reg->CCMR2, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM1_reg->CCER, 9U);
-						TIM1_reg->CCR3 = (unsigned short)0;
-						SET_BIT(TIM1_reg->CCMR2, 3U);
-						SET_BIT(TIM1_reg->CCMR2, 2U);
-						GPIO_setup(GPIOAEN, 10U, AF, AF1, PP, NoP);
-						SET_BIT(TIM1_reg->CCER, 8U);
-						WRITE_REG(TIM1_reg->SMCR, 7UL, 0U, 0UL);
-						SET_BIT(TIM1_reg->BDTR, 15U);
-						is_PWMinit[TIM1][CHANN_3] = true;
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-				SET_BIT(TIM1_reg->CR1, 0U);
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM2:
-			if (true == is_timerInit[TIM2])
-			{
-				SET_BIT(TIM2_reg->EGR, 0U);
-				WRITE_REG(TIM2_reg->CR2, 7UL, 4U, 0UL);
-				CLEAR_BIT(TIM2_reg->SMCR, 7U);
-				switch (Channel)
-				{
-					case CHANN_1:
-						CLEAR_BIT(TIM2_reg->CCER, 0U);
-						WRITE_REG(TIM2_reg->CCMR1, 7UL, 4U, 6UL);
-						WRITE_REG(TIM2_reg->CCMR1, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM2_reg->CCER, 1U);
-						TIM2_reg->CCR1 = (unsigned short)0;
-						SET_BIT(TIM2_reg->CCMR1, 3U);
-						SET_BIT(TIM2_reg->CCMR1, 2U);
-						GPIO_setup(GPIOAEN, 0U, AF, AF1, PP, NoP);
-						SET_BIT(TIM2_reg->CCER, 0U);
-						WRITE_REG(TIM2_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM2][CHANN_1] = true;
-						break;
-					case CHANN_2:
-						CLEAR_BIT(TIM2_reg->CCER, 4U);
-						WRITE_REG(TIM2_reg->CCMR1, 7UL, 12U, 6UL);
-						WRITE_REG(TIM2_reg->CCMR1, 3UL, 8U, 0UL);
-						CLEAR_BIT(TIM2_reg->CCER, 5U);
-						TIM2_reg->CCR2 = (unsigned short)0;
-						SET_BIT(TIM2_reg->CCMR1, 11U);
-						SET_BIT(TIM2_reg->CCMR1, 10U);
-						GPIO_setup(GPIOAEN, 1U, AF, AF1, PP, NoP);
-						SET_BIT(TIM2_reg->CCER, 4U);
-						WRITE_REG(TIM2_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM2][CHANN_2] = true;
-						break;
-					case CHANN_3:
-						CLEAR_BIT(TIM2_reg->CCER, 8U);
-						WRITE_REG(TIM2_reg->CCMR2, 7UL, 4U, 6UL);
-						WRITE_REG(TIM2_reg->CCMR2, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM2_reg->CCER, 9U);
-						TIM2_reg->CCR3 = (unsigned short)0;
-						SET_BIT(TIM2_reg->CCMR2, 3U);
-						SET_BIT(TIM2_reg->CCMR2, 2U);
-						GPIO_setup(GPIOAEN, 2U, AF, AF1, PP, NoP);
-						SET_BIT(TIM2_reg->CCER, 8U);
-						WRITE_REG(TIM2_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM2][CHANN_3] = true;
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-				SET_BIT(TIM2_reg->CR1, 0U);
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM3:
-			if (true == is_timerInit[TIM3])
-			{
-				SET_BIT(TIM3_reg->EGR, 0U);
-				WRITE_REG(TIM3_reg->CR2, 7UL, 4U, 0UL);
-				CLEAR_BIT(TIM3_reg->SMCR, 7U);
-				switch (Channel)
-				{
-					case CHANN_1:
-						CLEAR_BIT(TIM3_reg->CCER, 0U);
-						WRITE_REG(TIM3_reg->CCMR1, 7UL, 4U, 6UL);
-						WRITE_REG(TIM3_reg->CCMR1, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM3_reg->CCER, 1U);
-						TIM3_reg->CCR1 = (unsigned short)0;
-						SET_BIT(TIM3_reg->CCMR1, 3U);
-						SET_BIT(TIM3_reg->CCMR1, 2U);
-						GPIO_setup(GPIOAEN, 6U, AF, AF2, PP, NoP);
-						SET_BIT(TIM3_reg->CCER, 0U);
-						WRITE_REG(TIM3_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM3][CHANN_1] = true;
-						break;
-					case CHANN_2:
-						CLEAR_BIT(TIM3_reg->CCER, 4U);
-						WRITE_REG(TIM3_reg->CCMR1, 7UL, 12U, 6UL);
-						WRITE_REG(TIM3_reg->CCMR1, 3UL, 8U, 0UL);
-						CLEAR_BIT(TIM3_reg->CCER, 5U);
-						TIM3_reg->CCR2 = (unsigned short)0;
-						SET_BIT(TIM3_reg->CCMR1, 11U);
-						SET_BIT(TIM3_reg->CCMR1, 10U);
-						GPIO_setup(GPIOAEN, 7U, AF, AF2, PP, NoP);
-						SET_BIT(TIM3_reg->CCER, 4U);
-						WRITE_REG(TIM3_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM3][CHANN_2] = true;
-						break;
-					case CHANN_3:
-						CLEAR_BIT(TIM3_reg->CCER, 8U);
-						WRITE_REG(TIM3_reg->CCMR2, 7UL, 4U, 6UL);
-						WRITE_REG(TIM3_reg->CCMR2, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM3_reg->CCER, 9U);
-						TIM3_reg->CCR3 = (unsigned short)0;
-						SET_BIT(TIM3_reg->CCMR2, 3U);
-						SET_BIT(TIM3_reg->CCMR2, 2U);
-						GPIO_setup(GPIOBEN, 0U, AF, AF2, PP, NoP);
-						SET_BIT(TIM3_reg->CCER, 8U);
-						WRITE_REG(TIM3_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM3][CHANN_3] = true;
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-				SET_BIT(TIM3_reg->CR1, 0U);
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM4:
-			if (true == is_timerInit[TIM4])
-			{
-				SET_BIT(TIM4_reg->EGR, 0U);
-				WRITE_REG(TIM4_reg->CR2, 7UL, 4U, 0UL);
-				CLEAR_BIT(TIM4_reg->SMCR, 7U);
-				switch (Channel)
-				{
-					case CHANN_1:
-						CLEAR_BIT(TIM4_reg->CCER, 0U);
-						WRITE_REG(TIM4_reg->CCMR1, 7UL, 4U, 6UL);
-						WRITE_REG(TIM4_reg->CCMR1, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM4_reg->CCER, 1U);
-						TIM4_reg->CCR1 = (unsigned short)0;
-						SET_BIT(TIM4_reg->CCMR1, 3U);
-						SET_BIT(TIM4_reg->CCMR1, 2U);
-						GPIO_setup(GPIODEN, 12U, AF, AF2, PP, NoP);
-						SET_BIT(TIM4_reg->CCER, 0U);
-						WRITE_REG(TIM4_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM4][CHANN_1] = true;
-						break;
-					case CHANN_2:
-						CLEAR_BIT(TIM4_reg->CCER, 4U);
-						WRITE_REG(TIM4_reg->CCMR1, 7UL, 12U, 6UL);
-						WRITE_REG(TIM4_reg->CCMR1, 3UL, 8U, 0UL);
-						CLEAR_BIT(TIM4_reg->CCER, 5U);
-						TIM4_reg->CCR2 = (unsigned short)0;
-						SET_BIT(TIM4_reg->CCMR1, 11U);
-						SET_BIT(TIM4_reg->CCMR1, 10U);
-						GPIO_setup(GPIODEN, 13U, AF, AF2, PP, NoP);
-						SET_BIT(TIM4_reg->CCER, 4U);
-						WRITE_REG(TIM4_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM4][CHANN_2] = true;
-						break;
-					case CHANN_3:
-						CLEAR_BIT(TIM4_reg->CCER, 8U);
-						WRITE_REG(TIM4_reg->CCMR2, 7UL, 4U, 6UL);
-						WRITE_REG(TIM4_reg->CCMR2, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM4_reg->CCER, 9U);
-						TIM4_reg->CCR3 = (unsigned short)0;
-						SET_BIT(TIM4_reg->CCMR2, 3U);
-						SET_BIT(TIM4_reg->CCMR2, 2U);
-						GPIO_setup(GPIODEN, 14U, AF, AF2, PP, NoP);
-						SET_BIT(TIM4_reg->CCER, 8U);
-						WRITE_REG(TIM4_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM4][CHANN_3] = true;
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-				SET_BIT(TIM4_reg->CR1, 0U);
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
 		case TIM8:
-			if (true == is_timerInit[TIM8])
-			{
-				SET_BIT(TIM8_reg->EGR, 0U);
-				WRITE_REG(TIM8_reg->CR2, 7UL, 4U, 0UL);
-				CLEAR_BIT(TIM8_reg->SMCR, 7U);
-				switch (Channel)
-				{
-					case CHANN_1:
-						CLEAR_BIT(TIM8_reg->CCER, 0U);
-						WRITE_REG(TIM8_reg->CCMR1, 7UL, 4U, 6UL);
-						WRITE_REG(TIM8_reg->CCMR1, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM8_reg->CCER, 1U);
-						TIM8_reg->CCR1 = (unsigned short)0;
-						SET_BIT(TIM8_reg->CCMR1, 3U);
-						SET_BIT(TIM8_reg->CCMR1, 2U);
-						GPIO_setup(GPIOCEN, 6U, AF, AF3, PP, NoP);
-						SET_BIT(TIM8_reg->CCER, 0U);
-						WRITE_REG(TIM8_reg->SMCR, 7UL, 0U, 0UL);
-						SET_BIT(TIM8_reg->BDTR, 15U);
-						is_PWMinit[TIM8][CHANN_1] = true;
-						break;
-					case CHANN_2:
-						CLEAR_BIT(TIM8_reg->CCER, 4U);
-						WRITE_REG(TIM8_reg->CCMR1, 7UL, 12U, 6UL);
-						WRITE_REG(TIM8_reg->CCMR1, 3UL, 8U, 0UL);
-						CLEAR_BIT(TIM8_reg->CCER, 5U);
-						TIM8_reg->CCR2 = (unsigned short)0;
-						SET_BIT(TIM8_reg->CCMR1, 11U);
-						SET_BIT(TIM8_reg->CCMR1, 10U);
-						GPIO_setup(GPIOCEN, 7U, AF, AF3, PP, NoP);
-						SET_BIT(TIM8_reg->CCER, 4U);
-						WRITE_REG(TIM8_reg->SMCR, 7UL, 0U, 0UL);
-						SET_BIT(TIM8_reg->BDTR, 15U);
-						is_PWMinit[TIM8][CHANN_2] = true;
-						break;
-					case CHANN_3:
-						CLEAR_BIT(TIM8_reg->CCER, 8U);
-						WRITE_REG(TIM8_reg->CCMR2, 7UL, 4U, 6UL);
-						WRITE_REG(TIM8_reg->CCMR2, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM8_reg->CCER, 9U);
-						TIM8_reg->CCR3 = (unsigned short)0;
-						SET_BIT(TIM8_reg->CCMR2, 3U);
-						SET_BIT(TIM8_reg->CCMR2, 2U);
-						GPIO_setup(GPIOCEN, 8U, AF, AF3, PP, NoP);
-						SET_BIT(TIM8_reg->CCER, 8U);
-						WRITE_REG(TIM8_reg->SMCR, 7UL, 0U, 0UL);
-						SET_BIT(TIM8_reg->BDTR, 15U);
-						is_PWMinit[TIM8][CHANN_3] = true;
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-				SET_BIT(TIM8_reg->CR1, 0U);
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM9:
-			if (true == is_timerInit[TIM9])
-			{
-				SET_BIT(TIM9_reg->EGR, 0U);
-				CLEAR_BIT(TIM9_reg->SMCR, 7U);
-				switch (Channel)
-				{
-					case CHANN_1:
-						CLEAR_BIT(TIM9_reg->CCER, 0U);
-						WRITE_REG(TIM9_reg->CCMR1, 7UL, 4U, 6UL);
-						WRITE_REG(TIM9_reg->CCMR1, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM9_reg->CCER, 1U);
-						TIM9_reg->CCR1 = (unsigned short)0;
-						SET_BIT(TIM9_reg->CCMR1, 3U);
-						SET_BIT(TIM9_reg->CCMR1, 2U);
-						GPIO_setup(GPIOEEN, 5U, AF, AF3, PP, NoP);
-						SET_BIT(TIM9_reg->CCER, 0U);
-						WRITE_REG(TIM9_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM9][CHANN_1] = true;
-						break;
-					case CHANN_2:
-						CLEAR_BIT(TIM9_reg->CCER, 4U);
-						WRITE_REG(TIM9_reg->CCMR1, 7UL, 12U, 6UL);
-						WRITE_REG(TIM9_reg->CCMR1, 3UL, 8U, 0UL);
-						CLEAR_BIT(TIM9_reg->CCER, 5U);
-						TIM9_reg->CCR2 = (unsigned short)0;
-						SET_BIT(TIM9_reg->CCMR1, 11U);
-						SET_BIT(TIM9_reg->CCMR1, 10U);
-						GPIO_setup(GPIOEEN, 6U, AF, AF3, PP, NoP);
-						SET_BIT(TIM9_reg->CCER, 4U);
-						WRITE_REG(TIM9_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM9][CHANN_2] = true;
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-				SET_BIT(TIM9_reg->CR1, 0U);
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM10:
-			if (true == is_timerInit[TIM10])
-			{
-				SET_BIT(TIM10_reg->EGR, 0U);
-				CLEAR_BIT(TIM10_reg->SMCR, 7U);
-				switch (Channel)
-				{
-					case CHANN_1:
-						CLEAR_BIT(TIM10_reg->CCER, 0U);
-						WRITE_REG(TIM10_reg->CCMR1, 7UL, 4U, 6UL);
-						WRITE_REG(TIM10_reg->CCMR1, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM10_reg->CCER, 1U);
-						TIM10_reg->CCR1 = (unsigned short)0;
-						SET_BIT(TIM10_reg->CCMR1, 3U);
-						SET_BIT(TIM10_reg->CCMR1, 2U);
-						GPIO_setup(GPIOBEN, 8U, AF, AF3, PP, NoP);
-						SET_BIT(TIM10_reg->CCER, 0U);
-						WRITE_REG(TIM10_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM10][CHANN_1] = true;
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-				SET_BIT(TIM10_reg->CR1, 0U);
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM11:
-			if (true == is_timerInit[TIM11])
-			{
-				SET_BIT(TIM11_reg->EGR, 0U);
-				CLEAR_BIT(TIM11_reg->SMCR, 7U);
-				switch (Channel)
-				{
-					case CHANN_1:
-						CLEAR_BIT(TIM11_reg->CCER, 0U);
-						WRITE_REG(TIM11_reg->CCMR1, 7UL, 4U, 6UL);
-						WRITE_REG(TIM11_reg->CCMR1, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM11_reg->CCER, 1U);
-						TIM11_reg->CCR1 = (unsigned short)0;
-						SET_BIT(TIM11_reg->CCMR1, 2U);
-						SET_BIT(TIM11_reg->CCMR1, 3U);
-						GPIO_setup(GPIOBEN, 9U, AF, AF3, PP, NoP);
-						SET_BIT(TIM11_reg->CCER, 0U);
-						WRITE_REG(TIM11_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM11][CHANN_1] = true;
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-				SET_BIT(TIM11_reg->CR1, 0U);
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM12:
-			if (true == is_timerInit[TIM12])
-			{
-				SET_BIT(TIM12_reg->EGR, 0U);
-				CLEAR_BIT(TIM12_reg->SMCR, 7U);
-				switch (Channel)
-				{
-					case CHANN_1:
-						CLEAR_BIT(TIM12_reg->CCER, 0U);
-						WRITE_REG(TIM12_reg->CCMR1, 7UL, 4U, 6UL);
-						WRITE_REG(TIM12_reg->CCMR1, 3UL, 0U, 0UL);
-						CLEAR_BIT(TIM12_reg->CCER, 1U);
-						TIM12_reg->CCR1 = (unsigned short)0;
-						SET_BIT(TIM12_reg->CCMR1, 3U);
-						SET_BIT(TIM12_reg->CCMR1, 2U);
-						GPIO_setup(GPIOBEN, 14U, AF, AF9, PP, NoP);
-						SET_BIT(TIM12_reg->CCER, 0U);
-						WRITE_REG(TIM12_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM12][CHANN_1] = true;
-						break;
-					case CHANN_2:
-						CLEAR_BIT(TIM12_reg->CCER, 4U);
-						WRITE_REG(TIM12_reg->CCMR1, 7UL, 12U, 6UL);
-						WRITE_REG(TIM12_reg->CCMR1, 3UL, 8U, 0UL);
-						CLEAR_BIT(TIM12_reg->CCER, 5U);
-						TIM12_reg->CCR2 = (unsigned short)0;
-						SET_BIT(TIM12_reg->CCMR1, 11U);
-						SET_BIT(TIM12_reg->CCMR1, 10U);
-						GPIO_setup(GPIOBEN, 15U, AF, AF9, PP, NoP);
-						SET_BIT(TIM12_reg->CCER, 4U);
-						WRITE_REG(TIM12_reg->SMCR, 7UL, 0U, 0UL);
-						is_PWMinit[TIM12][CHANN_2] = true;
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-				SET_BIT(TIM12_reg->CR1, 0U);
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
+			// Main output enable
+			SET_BIT(TIM_reg[TIMx_en]->BDTR, 15U);
 			break;
 		default:
-			ReturnVal = NOT_OK;
 			break;
 	}
 
-	return ReturnVal;
+	// Disable Counter
+	CLEAR_BIT(TIM_reg[TIMx_en]->CR1, 0U);
+	// CCx channel is configured as output
+	WRITE_REG(TIM_reg[TIMx_en]->CCMR[Channel / 2U], 3UL, ((Channel % 2) * 8), 0UL);
+	// Choose Output compare mode
+	WRITE_REG(TIM_reg[TIMx_en]->CCMR[Channel / 2U], 7UL, OCxM_bit[Channel % 2], 6UL);
+	// Output compare preload enable
+	SET_BIT(TIM_reg[TIMx_en]->CCMR[Channel / 2U], OCxPE_bit[Channel % 2]);
+	// Output compare fast enable
+	SET_BIT(TIM_reg[TIMx_en]->CCMR[Channel / 2U], OCxFE_bit[Channel % 2]);
+	// Output compare enable
+	SET_BIT(TIM_reg[TIMx_en]->CCER, (Channel * 4U));
+
+	// Setup GPIO
+	switch (TIMx_en)
+	{
+		case TIM1:
+			if (Channel == CHANN_1) GPIO_setup(GPIOAEN, 8U, AF, AF1, PP, NoP);
+			if (Channel == CHANN_2) GPIO_setup(GPIOAEN, 9U, AF, AF1, PP, NoP);
+			if (Channel == CHANN_3) GPIO_setup(GPIOAEN, 10U, AF, AF1, PP, NoP);
+			if (Channel == CHANN_4) GPIO_setup(GPIOAEN, 11U, AF, AF1, PP, NoP);
+			break;
+
+		case TIM2:
+			if (Channel == CHANN_1) GPIO_setup(GPIOAEN, 0U, AF, AF1, PP, NoP);
+			if (Channel == CHANN_2) GPIO_setup(GPIOAEN, 1U, AF, AF1, PP, NoP);
+			if (Channel == CHANN_3) GPIO_setup(GPIOAEN, 2U, AF, AF1, PP, NoP);
+			if (Channel == CHANN_4) GPIO_setup(GPIOAEN, 3U, AF, AF1, PP, NoP);
+			break;
+
+		case TIM3:
+			if (Channel == CHANN_1) GPIO_setup(GPIOAEN, 6U, AF, AF2, PP, NoP);
+			if (Channel == CHANN_2) GPIO_setup(GPIOAEN, 7U, AF, AF2, PP, NoP);
+			if (Channel == CHANN_3) GPIO_setup(GPIOBEN, 0U, AF, AF2, PP, NoP);
+			if (Channel == CHANN_4) GPIO_setup(GPIOBEN, 1U, AF, AF2, PP, NoP);
+			break;
+
+		case TIM4:
+			if (Channel == CHANN_1) GPIO_setup(GPIOBEN, 6U, AF, AF2, PP, NoP);
+			if (Channel == CHANN_2) GPIO_setup(GPIOBEN, 7U, AF, AF2, PP, NoP);
+			if (Channel == CHANN_3) GPIO_setup(GPIOBEN, 8U, AF, AF2, PP, NoP);
+			if (Channel == CHANN_4) GPIO_setup(GPIOBEN, 9U, AF, AF2, PP, NoP);
+			break;
+
+		case TIM5:
+			if (Channel == CHANN_1) GPIO_setup(GPIOAEN, 0U, AF, AF2, PP, NoP);
+			if (Channel == CHANN_2) GPIO_setup(GPIOAEN, 1U, AF, AF2, PP, NoP);
+			if (Channel == CHANN_3) GPIO_setup(GPIOAEN, 2U, AF, AF2, PP, NoP);
+			if (Channel == CHANN_4) GPIO_setup(GPIOAEN, 3U, AF, AF2, PP, NoP);
+			break;
+
+		case TIM8:
+			if (Channel == CHANN_1) GPIO_setup(GPIOCEN, 6U, AF, AF3, PP, NoP);
+			if (Channel == CHANN_2) GPIO_setup(GPIOCEN, 7U, AF, AF3, PP, NoP);
+			if (Channel == CHANN_3) GPIO_setup(GPIOCEN, 8U, AF, AF3, PP, NoP);
+			if (Channel == CHANN_4) GPIO_setup(GPIOCEN, 9U, AF, AF3, PP, NoP);
+			break;
+
+		case TIM9:
+			if (Channel == CHANN_1) GPIO_setup(GPIOEEN, 5U, AF, AF3, PP, NoP);
+			if (Channel == CHANN_2) GPIO_setup(GPIOEEN, 6U, AF, AF3, PP, NoP);
+			break;
+			
+		case TIM10:
+			if (Channel == CHANN_1) GPIO_setup(GPIOBEN, 8U, AF, AF3, PP, NoP);
+			break;
+
+		case TIM11:
+			if (Channel == CHANN_1) GPIO_setup(GPIOBEN, 9U, AF, AF3, PP, NoP);
+			break;
+
+		case TIM12:
+			if (Channel == CHANN_1) GPIO_setup(GPIOBEN, 14U, AF, AF9, PP, NoP);
+			if (Channel == CHANN_2) GPIO_setup(GPIOBEN, 15U, AF, AF9, PP, NoP);
+			break;
+
+		case TIM13:
+			if (Channel == CHANN_1) GPIO_setup(GPIOAEN, 6U, AF, AF9, PP, NoP);
+			break;
+		
+		case TIM14:
+			if (Channel == CHANN_1) GPIO_setup(GPIOAEN, 7U, AF, AF9, PP, NoP);
+			break;
+		
+		default:
+			return NOT_OK;
+			break;
+	}
+
+	is_PWMinit[TIMx_en][Channel] = true;
+
+	return OK;
 }
 
 bool PWM_Generation(TIMx_t TIMx_en, TIM_Channel_t Channel, uint8_t activePercent_u8_int, uint8_t activePercent_floating_point)
 {
-	bool ReturnVal = OK;
-
 	uint8_t floating_point_u8 = 0;
 
 	if (activePercent_floating_point < 10U)
@@ -493,7 +165,7 @@ bool PWM_Generation(TIMx_t TIMx_en, TIM_Channel_t Channel, uint8_t activePercent
 		floating_point_u8 = activePercent_floating_point / 10U;
 		if (floating_point_u8 <= 2U)
 		{
-			floating_point_u8 = 0;
+			// do nothing
 		}
 		else if (floating_point_u8 > 2U && floating_point_u8 <= 7U)
 		{
@@ -509,357 +181,19 @@ bool PWM_Generation(TIMx_t TIMx_en, TIM_Channel_t Channel, uint8_t activePercent
 		// do nothing
 	}
 
-	switch (TIMx_en)
+	if ((true == is_timerInit[TIMx_en]) && (true == is_PWMinit[TIMx_en][Channel]))
 	{
-		case TIM1:
-			if (true == is_timerInit[TIM1])
-			{
-				switch (Channel)
-				{
-					case CHANN_1:
-						if (true == is_PWMinit[TIM1][CHANN_1])
-						{
-							TIM1_reg->CCR1 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_2:
-						if (true == is_PWMinit[TIM1][CHANN_2])
-						{
-							TIM1_reg->CCR2 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_3:
-						if (true == is_PWMinit[TIM1][CHANN_3])
-						{
-							TIM1_reg->CCR3 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM2:
-			if (true == is_timerInit[TIM2])
-			{
-				switch (Channel)
-				{
-					case CHANN_1:
-						if (true == is_PWMinit[TIM2][CHANN_1])
-						{
-							TIM2_reg->CCR1 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_2:
-						if (true == is_PWMinit[TIM2][CHANN_2])
-						{
-							TIM2_reg->CCR2 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_3:
-						if (true == is_PWMinit[TIM2][CHANN_3])
-						{
-							TIM2_reg->CCR3 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM3:
-			if (true == is_timerInit[TIM3])
-			{
-				switch (Channel)
-				{
-					case CHANN_1:
-						if (true == is_PWMinit[TIM3][CHANN_1])
-						{
-							TIM3_reg->CCR1 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_2:
-						if (true == is_PWMinit[TIM3][CHANN_2])
-						{
-							TIM3_reg->CCR2 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_3:
-						if (true == is_PWMinit[TIM3][CHANN_3])
-						{
-							TIM3_reg->CCR3 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM4:
-			if (true == is_timerInit[TIM4])
-			{
-				switch (Channel)
-				{
-					case CHANN_1:
-						if (true == is_PWMinit[TIM4][CHANN_1])
-						{
-							TIM4_reg->CCR1 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_2:
-						if (true == is_PWMinit[TIM4][CHANN_2])
-						{
-							TIM4_reg->CCR2 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_3:
-						if (true == is_PWMinit[TIM4][CHANN_3])
-						{
-							TIM4_reg->CCR3 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM8:
-			if (true == is_timerInit[TIM8])
-			{
-				switch (Channel)
-				{
-					case CHANN_1:
-						if (true == is_PWMinit[TIM8][CHANN_1])
-						{
-							TIM8_reg->CCR1 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_2:
-						if (true == is_PWMinit[TIM8][CHANN_2])
-						{
-							TIM8_reg->CCR2 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_3:
-						if (true == is_PWMinit[TIM8][CHANN_3])
-						{
-							TIM8_reg->CCR3 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM9:
-			if (true == is_timerInit[TIM9])
-			{
-				switch (Channel)
-				{
-					case CHANN_1:
-						if (true == is_PWMinit[TIM9][CHANN_1])
-						{
-							TIM9_reg->CCR1 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_2:
-						if (true == is_PWMinit[TIM9][CHANN_2])
-						{
-							TIM9_reg->CCR2 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM10:
-			if (true == is_timerInit[TIM10])
-			{
-				switch (Channel)
-				{
-					case CHANN_1:
-						if (true == is_PWMinit[TIM10][CHANN_1])
-						{
-							TIM10_reg->CCR1 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM11:
-			if (true == is_timerInit[TIM11])
-			{
-				switch (Channel)
-				{
-					case CHANN_1:
-						if (true == is_PWMinit[TIM11][CHANN_1])
-						{
-							TIM11_reg->CCR1 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		case TIM12:
-			if (true == is_timerInit[TIM12])
-			{
-				switch (Channel)
-				{
-					case CHANN_1:
-						if (true == is_PWMinit[TIM12][CHANN_1])
-						{
-							TIM12_reg->CCR1 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					case CHANN_2:
-						if (true == is_PWMinit[TIM12][CHANN_2])
-						{
-							TIM12_reg->CCR2 = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
-						}
-						else
-						{
-							ReturnVal = NOT_OK;
-						}
-						break;
-					default:
-						ReturnVal = NOT_OK;
-						break;
-				}
-			}
-			else
-			{
-				ReturnVal = NOT_OK;
-			}
-			break;
-		default:
-			ReturnVal = NOT_OK;
-			break;
-	}		
+		TIM_reg[TIMx_en]->CCR[Channel] = (unsigned short)((((ARR_CONST + 1) * activePercent_u8_int) / 100U) + (floating_point_u8 * 2U / 10U));
+	}
+	else
+	{
+		return NOT_OK;
+	}
 
-	return ReturnVal;
+	// Reset Counter
+	TIM_reg[TIMx_en]->CNT = 0U;
+	// Enable Counter
+	SET_BIT(TIM_reg[TIMx_en]->CR1, 0U);
+
+	return OK;
 }

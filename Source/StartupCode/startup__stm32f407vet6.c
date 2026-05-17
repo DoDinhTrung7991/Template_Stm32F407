@@ -253,11 +253,6 @@ void Reset_Handler(void)
 
 void EXTI3_Handler(void)
 {
-	// It is not recommended to call initialization functions inside an ISR.
-    // Timer_init() and PWM_init() should be called once in main().
-    // This handler can be used to change the duty cycle, for example.
-    PWM_Generation(TIM1, CHANN_3, 50, 0); // Example: Set duty cycle to 50%
-
 	if (READ_REG(EXTI_reg->PR, 1UL, 3U))
 	{
 		// Clear the pending bit by writing 1 to it
@@ -267,11 +262,6 @@ void EXTI3_Handler(void)
 
 void EXTI4_Handler(void)
 {
-	// It is not recommended to call initialization functions inside an ISR.
-    // Timer_init() and PWM_init() should be called once in main().
-    // This handler can be used to change the duty cycle, for example.
-	PWM_Generation(TIM1, CHANN_2, 50, 0); // Example: Set duty cycle to 50%
-
 	if (READ_REG(EXTI_reg->PR, 1UL, 4U))
 	{
 		// Clear the pending bit by writing 1 to it
