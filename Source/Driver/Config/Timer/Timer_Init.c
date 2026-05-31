@@ -109,10 +109,6 @@ bool Timer_init(TIMx_t TIMx_en, uint8_t frequency_u8, bool is_Interrupt_b)
 
 	// Disable Counter
 	CLEAR_BIT(TIM_reg[TIMx_en]->CR1, 0U);
-	// Auto-reload preload enable
-	SET_BIT(TIM_reg[TIMx_en]->CR1, 7U);
-	// Update request source
-	SET_BIT(TIM_reg[TIMx_en]->CR1, 2U);
 	// Update generation
 	SET_BIT(TIM_reg[TIMx_en]->EGR, 0U);
 
@@ -145,6 +141,8 @@ bool Timer_init(TIMx_t TIMx_en, uint8_t frequency_u8, bool is_Interrupt_b)
 			break;
 	}
 
+	// Auto-reload preload enable
+	SET_BIT(TIM_reg[TIMx_en]->CR1, 7U);
 	// Clear interrupt flag
 	CLEAR_BIT(TIM_reg[TIMx_en]->SR, 0U);
 

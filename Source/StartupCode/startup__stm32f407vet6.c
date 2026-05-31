@@ -66,7 +66,7 @@ __attribute__((weak, alias("Default_Handler")))void TIM1_BRK_TIM9_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM1_UP_TIM10_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM1_TRG_COM_TIM11_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM1_CC_Handler(void);
-__attribute__((weak, alias("Default_Handler")))void TIM2_Handler(void);
+void TIM2_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM3_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM4_Handler(void);
 void I2C1_EV_Handler(void);
@@ -82,7 +82,7 @@ __attribute__((weak, alias("Default_Handler")))void EXTI15_10_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void RTC_Alarm_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void OTG_FS_WKUP_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM8_BRK_TIM12_Handler(void);
-__attribute__((weak, alias("Default_Handler")))void TIM8_UP_TIM13_Handler(void);
+void TIM8_UP_TIM13_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM8_TRG_COM_TIM14_Handler(void);
 __attribute__((weak, alias("Default_Handler")))void TIM8_CC_Handler(void);
 void DMA1_Stream7_Handler(void);
@@ -517,6 +517,16 @@ void DMA2_Stream7_Handler(void)
     }
 }
 
+void TIM2_Handler(void)
+{
+    // User define
+}
+
+void TIM8_UP_TIM13_Handler(void)
+{
+    // User define
+}
+
 void SysTick_Handler(void)
 {
     SysTick_cnt_u32 ++;
@@ -526,7 +536,7 @@ void Default_Handler(void)
 {
     while (1)
     {
-        
+        // do nothing
     }
 }
 
